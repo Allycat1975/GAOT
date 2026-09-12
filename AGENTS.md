@@ -11,14 +11,21 @@ The current implementation target is V1 and is defined in `doc/SPEC-implementati
 
 Before making changes, read in this order:
 
-1. `doc/GOAL.md`
-2. `doc/PRODUCT.md`
-3. `doc/SPEC-implementation.md`
-4. `doc/DEVELOPING.md`
-5. `doc/DATABASE.md`
+1. `doc/genesis/FORK-BOUNDARY.md`
+2. `doc/genesis/MYCELIUM-SEAM.md`
+3. `doc/genesis/CANONICAL-OWNERSHIP.md`
+4. `doc/genesis/STATUS-MAPPING.md`
+5. `doc/genesis/GUARDIAN-GOVERNANCE.md`
+6. `doc/GOAL.md`
+7. `doc/PRODUCT.md`
+8. `doc/SPEC-implementation.md`
+9. `doc/DEVELOPING.md`
+10. `doc/DATABASE.md`
 
 `doc/SPEC.md` is long-horizon product context.
 `doc/SPEC-implementation.md` is the concrete V1 build contract.
+The Genesis documents take precedence for MYCI-controlled company state. They
+define the Mycelium boundary and must not be weakened by donor semantics.
 
 When adding or changing an Apps catalog connection, also follow
 `doc/connections/CONNECTOR-PLAYBOOK.md`. It is the canonical connection
