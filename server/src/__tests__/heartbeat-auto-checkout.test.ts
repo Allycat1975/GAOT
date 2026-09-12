@@ -35,4 +35,15 @@ describe("shouldAutoCheckoutIssueForWake", () => {
       agentId: reviewerAgentId,
     })).toBe(false);
   });
+
+  it("never lets a Mycelium-controlled worker self-check out a donor issue", () => {
+    expect(shouldAutoCheckoutIssueForWake({
+      contextSnapshot: { wakeReason: "issue_assigned" },
+      issueStatus: "todo",
+      issueAssigneeAgentId: "agent-1",
+      isDependencyReady: true,
+      agentId: "agent-1",
+      isMyceliumControlledWorker: true,
+    })).toBe(false);
+  });
 });

@@ -147,6 +147,11 @@ import {
 } from "@paperclipai/db";
 import { conflict, HttpError, notFound } from "../errors.js";
 import {
+  assertPaperclipWorkerSchedulingAllowed,
+  createMyceliumWorkerControlLookup,
+  type MyceliumWorkerControlLookup,
+} from "../mycelium/worker-control.js";
+import {
   getStartupTraceContext,
   getStartupTracer,
 } from "../instrumentation.js";
@@ -6744,7 +6749,10 @@ export function shouldAutoCheckoutIssueForWake(input: {
   issueExecutionState?: unknown;
   isDependencyReady: boolean;
   agentId: string;
+  /** Mycelium-controlled workers never self-select donor issues. */
+  isMyceliumControlledWorker?: boolean;
 }) {
+  if (input.isMyceliumControlledWorker) return false;
   if (input.issueAssigneeAgentId !== input.agentId) return false;
   if (!input.isDependencyReady) return false;
   const executionState = parseIssueExecutionState(input.issueExecutionState);
@@ -8989,6 +8997,11 @@ export type HeartbeatEnvironmentRuntime = ReturnType<
 >;
 
 export interface HeartbeatServiceOptions {
+  /**
+   * Governs whether an agent is owned by Mycelium. This seam lets the
+   * scheduler remain testable while production always uses durable bindings.
+   */
+  myceliumWorkerControl?: MyceliumWorkerControlLookup;
   /** Test seam immediately before the durable chat-control admission check. */
   beforeChatControlRecoveryCheck?: (input: {
     runId: string;
@@ -9140,6 +9153,8 @@ export function heartbeatService(
   db: Db,
   options: HeartbeatServiceOptions = {},
 ) {
+  const myceliumWorkerControl =
+    options.myceliumWorkerControl ?? createMyceliumWorkerControlLookup(db);
   let shutdownInProgress = false;
   const instanceSettings = instanceSettingsService(db);
   const getCurrentUserRedactionOptions = async () => ({
@@ -16621,6 +16636,19 @@ export function heartbeatService(
       );
       return null;
     }
+    // A worker may have become Mycelium-controlled after this legacy run was
+    // queued. Cancel rather than allow an old donor queue entry to bypass the
+    // ingress guard below.
+    if (await myceliumWorkerControl.isMyceliumControlled({
+      companyId: run.companyId,
+      agentId: run.agentId,
+    })) {
+      await cancelRunInternal(
+        run.id,
+        "Cancelled because Mycelium controls this worker; Paperclip heartbeat scheduling is denied",
+      );
+      return null;
+    }
     const invokability = companyAgents
       ? evaluateAgentInvokability(toAgentOrgRow(agent), companyAgents)
       : await getAgentInvokability(agent);
@@ -19461,6 +19489,11 @@ export function heartbeatService(
           isDependencyReady:
             issueDependencyReadiness?.isDependencyReady ?? true,
           agentId: agent.id,
+          isMyceliumControlledWorker:
+            await myceliumWorkerControl.isMyceliumControlled({
+              companyId: agent.companyId,
+              agentId: agent.id,
+            }),
         })
       ) {
         try {
@@ -25016,6 +25049,13 @@ export function heartbeatService(
 
     let agent = await getAgent(agentId);
     if (!agent) throw notFound("Agent not found");
+    // This is the scheduler ingress for manual invokes, retries, timer wakes,
+    // issue assignment wakes, and automatic follow-ups. It must run before
+    // any donor queue record is created.
+    await assertPaperclipWorkerSchedulingAllowed(myceliumWorkerControl, {
+      companyId: agent.companyId,
+      agentId: agent.id,
+    });
     if (agent.adapterType === "paperclip_runner") {
       const oldConfig = parseObject(agent.adapterConfig);
       const nextConfig = normalizeLegacyRunnerProvider(oldConfig);

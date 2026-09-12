@@ -37,6 +37,7 @@ import {
   approvals,
   assets,
   companies,
+  genesisProjectionBindings,
   companyMemberships,
   documentRevisions,
   documents,
@@ -95,6 +96,10 @@ import {
   normalizeIssueIdentifier as normalizeIssueReferenceIdentifier,
 } from "@paperclipai/shared";
 import { conflict, HttpError, notFound, unprocessable } from "../errors.js";
+import {
+  assertGaotMutationAllowed,
+  CanonicalProjectionMutationError,
+} from "../mycelium/projection-guard.js";
 import { isForeignKeyViolation } from "../db-errors.js";
 import { logger } from "../middleware/logger.js";
 import { parseObject } from "../adapters/utils.js";
@@ -6464,6 +6469,52 @@ export function issueService(db: Db) {
   const instanceSettings = instanceSettingsService(db);
   const treeControlSvc = issueTreeControlService(db);
 
+  /**
+   * Generic Paperclip issue writes must never alter a Mycelium-owned
+   * projection. This is intentionally kept in the service, rather than a
+   * route middleware, because runners, recovery flows, and plugins call this
+   * service directly as well.
+   */
+  async function assertIssueMutationIsNotCanonicalProjection(
+    dbOrTx: any,
+    issue: Pick<typeof issues.$inferSelect, "id" | "companyId">,
+  ): Promise<void> {
+    try {
+      await assertGaotMutationAllowed(
+        {
+          isBound: async (target) => {
+            const [binding] = await dbOrTx
+              .select({ id: genesisProjectionBindings.id })
+              .from(genesisProjectionBindings)
+              .where(
+                and(
+                  eq(genesisProjectionBindings.companyId, target.companyId),
+                  eq(genesisProjectionBindings.localTargetKind, target.localTargetKind),
+                  eq(genesisProjectionBindings.localTargetId, target.localTargetId),
+                  eq(genesisProjectionBindings.canonicalSystem, "mycelium"),
+                ),
+              )
+              .limit(1);
+            return Boolean(binding);
+          },
+        },
+        {
+          companyId: issue.companyId,
+          localTargetKind: "issue",
+          localTargetId: issue.id,
+        },
+      );
+    } catch (error) {
+      if (error instanceof CanonicalProjectionMutationError) {
+        throw conflict(
+          "This task is a Mycelium projection and may only be changed by the Mycelium projection writer.",
+          { code: "mycelium_projection_mutation_forbidden", issueId: issue.id },
+        );
+      }
+      throw error;
+    }
+  }
+
   function normalizeCreateIssueTitle(title: string) {
     return title.trim().replace(/\s+/g, " ").toLowerCase();
   }
@@ -10737,6 +10788,9 @@ export function issueService(db: Db) {
           .for("update")
           .then((rows: Array<typeof issues.$inferSelect>) => rows[0] ?? null);
         if (!receiptExisting) return null;
+        // Do this after locking the target issue. Every ordinary mutation path
+        // (including direct service consumers) goes through this point.
+        await assertIssueMutationIsNotCanonicalProjection(tx, receiptExisting);
         if (actorAgentId && patch.status === "done") {
           const [review] = await tx.select({ id: toolActionRequests.id }).from(toolActionRequests).where(and(eq(toolActionRequests.companyId, existing.companyId), eq(toolActionRequests.issueId, id), inArray(toolActionRequests.status, ["pending", "approved", "executing"]))).limit(1);
           if (review) throw conflict("This task is waiting for a connection review. Finish unrelated work, then yield in_review without retrying the governed call.", { code: "tool_review_pending", actionRequestId: review.id });
@@ -11171,6 +11225,10 @@ export function issueService(db: Db) {
         .where(eq(issues.id, id))
         .then((rows) => rows[0] ?? null);
       if (!issueCompany) throw notFound("Issue not found");
+      await assertIssueMutationIsNotCanonicalProjection(db, {
+        id,
+        companyId: issueCompany.companyId,
+      });
       await assertAssignableAgent(db, issueCompany.companyId, agentId, {
         kind: "work",
       });
@@ -11584,6 +11642,7 @@ export function issueService(db: Db) {
           .then((rows) => rows[0] ?? null);
 
         if (!existing) return null;
+        await assertIssueMutationIsNotCanonicalProjection(tx, existing);
         if (
           actorAgentId &&
           existing.assigneeAgentId &&
@@ -11645,6 +11704,7 @@ export function issueService(db: Db) {
         const existing = await tx
           .select({
             id: issues.id,
+            companyId: issues.companyId,
             checkoutRunId: issues.checkoutRunId,
             executionRunId: issues.executionRunId,
           })
@@ -11652,6 +11712,7 @@ export function issueService(db: Db) {
           .where(eq(issues.id, id))
           .then((rows) => rows[0] ?? null);
         if (!existing) return null;
+        await assertIssueMutationIsNotCanonicalProjection(tx, existing);
 
         const patch: Partial<typeof issues.$inferInsert> = {
           checkoutRunId: null,
