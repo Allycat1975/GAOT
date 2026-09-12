@@ -14,20 +14,29 @@ replace the Genesis boundary documents; they remain normative.
 | Typed, read-only Mycelium seam | `server/src/mycelium/client.ts`, projection routes, canonical Mycelium API | established |
 | Canonical control-plane storage | MyCI migrations `000015` and `000016` | established |
 | Presentation branding | GAOT brand configuration and manifest/title | established |
-| Binding registry | `genesis_projection_bindings` migration `0274` | established, not yet wired to all donor mutations |
+| Binding registry and projection writer | `genesis_projection_bindings`, `server/src/mycelium/projection-writer.ts` | established; rejects stale/re-pointed/conflicting projections |
+| GAOT mutation barrier | central issue, comment, attachment, work-product, document and heartbeat services | established for those paths; raw/direct and unrelated donor tables remain an audit item |
+| Canonical command service | MyCI `@genesis/mycelium-control-plane` | established internally; no public write route |
+| Command authority | fail-closed PolicyEngine command authorizer | established; deployment must supply explicit actor-role/context resolvers |
+| Critic/Guardian lifecycle | MyCI command service plus migrations `000016`/`000017` | established internally; API remains deliberately read-only |
+| Tool authorization envelope | MyCI `@genesis/tool-gateway` | established as injected verification ports; deployment must supply durable nonce/signature/evidence adapters |
+| Canonical operator view | GAOT `/mycelium` projection facade and UI | established; requires canonical API configuration and company binding |
 
 ## Mandatory delivery gates
 
 ### Gate A — Canonical commands
 
-Mycelium, not GAOT, must provide a policy-authorized command path for Intent,
+Mycelium, not GAOT, provides a policy-authorized internal command path for Intent,
 Plan confirmation, WorkUnit dispatch, Critic/Guardian review, Evidence and
 Memory. Each command must emit an audit/domain event and fail closed when live
 canonical authority cannot be resolved. GAOT must never expose a generic
 canonical PATCH or POST endpoint.
 
-Proof: command-service tests cover deny, allow, tenancy, idempotency and the
-Guardian/evidence invariants; a live endpoint has no general mutation route.
+Current proof: focused command and policy-authorizer tests cover deny, allow,
+tenancy and lifecycle preconditions; a live endpoint has no general mutation
+route. Remaining deployment proof: wire a real RoleFactory/context resolver
+and an explicitly authenticated command transport without treating a donor
+membership as canonical authority.
 
 ### Gate B — Projection writer and mutation guard
 
@@ -38,9 +47,11 @@ records canonical system/id/kind, local target, version/hash, observation time
 and last applied event ID. Event application must be idempotent and reject an
 older canonical version.
 
-Proof: attempts to patch a bound row through all donor entry points fail;
-replay and out-of-order event tests leave the newest canonical projection
-intact.
+Current proof: central issue and its mutable child-resource services reject
+bound rows; monotonic writer tests reject replay, stale, conflicting and
+re-pointed records. Remaining proof: audit the other donor entity families
+and prohibit direct database writers outside target-specific projection
+adapters.
 
 ### Gate C — Lifecycle mapping
 
