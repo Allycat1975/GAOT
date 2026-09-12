@@ -20,10 +20,12 @@ import { initPluginBridge } from "./plugins/bridge-init";
 import { PluginLauncherProvider } from "./plugins/launchers";
 import { startPerfMeasureReaper } from "./lib/perf-measure-reaper";
 import { getOrCreatePaperclipReactRoot } from "./lib/react-root";
+import { genesisBranding } from "./lib/genesis-branding";
 import { startServiceWorkerUpdates } from "./lib/service-worker-updates";
 import "@mdxeditor/editor/style.css";
 import "./index.css";
 
+document.title = genesisBranding.productName;
 initPluginBridge(React, ReactDOM);
 
 // React 19.2 emits an unbounded stream of performance.measure() entries for its
