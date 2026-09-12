@@ -872,6 +872,11 @@ async function startServerWithDatabaseTeardown(
   // document parsed fail-closed above (`plugins.autoInstall`). Absent env means
   // self-hosted: createApp falls back to its built-in kubernetes-only default.
   const managedPluginAutoInstall = managedConfig?.plugins.autoInstall ?? null;
+  const myceliumApiBaseUrl = process.env.MYCELIUM_API_BASE_URL?.trim();
+  const myceliumApiToken = process.env.MYCELIUM_API_TOKEN?.trim();
+  if (Boolean(myceliumApiBaseUrl) !== Boolean(myceliumApiToken)) {
+    throw new Error("MYCELIUM_API_BASE_URL and MYCELIUM_API_TOKEN must be configured together.");
+  }
   const app = await createApp(db as any, {
     uiMode,
     serverPort: listenPort,
@@ -909,6 +914,9 @@ async function startServerWithDatabaseTeardown(
     pluginWorkerManager,
     decisionServiceOptions,
     managedPluginAutoInstall,
+    myceliumApi: myceliumApiBaseUrl && myceliumApiToken
+      ? { baseUrl: myceliumApiBaseUrl, bearerToken: myceliumApiToken }
+      : undefined,
   });
   const server = createServer(app as unknown as Parameters<typeof createServer>[0]);
 
