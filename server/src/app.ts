@@ -81,6 +81,8 @@ import { smokeLabRoutes } from "./routes/smoke-lab.js";
 import { costRoutes } from "./routes/costs.js";
 import { activityRoutes } from "./routes/activity.js";
 import { dashboardRoutes } from "./routes/dashboard.js";
+import { myceliumProjectionRoutes } from "./routes/mycelium-projections.js";
+import { HttpMyceliumReadClient } from "./mycelium/client.js";
 import { attentionRoutes } from "./routes/attention.js";
 import { decisionTrainingRoutes } from "./routes/decision-training.js";
 import { decisionRoutes } from "./routes/decisions.js";
@@ -491,6 +493,8 @@ export async function createApp(
     managedPluginAutoInstall?: readonly string[] | null;
     /** Test override for the bundled plugin catalog root. */
     bundledPluginCatalogRoot?: string;
+    /** Optional canonical Mycelium read endpoint; no endpoint is exposed when absent. */
+    myceliumApi?: { baseUrl: string; bearerToken: string };
   },
 ) {
   const app = express();
@@ -632,6 +636,9 @@ export async function createApp(
   api.use(openApiRoutes());
   api.use("/cloud", cloudRoutes());
   api.use("/companies", companyRoutes(db, opts.storageService));
+  if (opts.myceliumApi) {
+    api.use(myceliumProjectionRoutes(new HttpMyceliumReadClient(opts.myceliumApi)));
+  }
   api.use(llmRoutes(db));
   api.use(folderRoutes(db));
   api.use(companySkillRoutes(db));
