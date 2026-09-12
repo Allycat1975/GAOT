@@ -1,4 +1,15 @@
 export const queryKeys = {
+  mycelium: {
+    health: ["mycelium", "health"] as const,
+    company: (companyId: string) => ["mycelium", companyId, "company"] as const,
+    workers: (companyId: string) => ["mycelium", companyId, "workers"] as const,
+    goals: (companyId: string) => ["mycelium", companyId, "goals"] as const,
+    workUnits: (companyId: string) => ["mycelium", companyId, "work-units"] as const,
+    runs: (companyId: string) => ["mycelium", companyId, "runs"] as const,
+    activity: (companyId: string) => ["mycelium", companyId, "activity"] as const,
+    costs: (companyId: string) => ["mycelium", companyId, "costs"] as const,
+    evidence: (companyId: string) => ["mycelium", companyId, "evidence"] as const,
+  },
   companies: {
     /**
      * Prefix for everything company-shaped. Matches the list, details and stats
