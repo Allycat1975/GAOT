@@ -37,7 +37,6 @@ import {
   approvals,
   assets,
   companies,
-  genesisProjectionBindings,
   companyMemberships,
   documentRevisions,
   documents,
@@ -96,10 +95,7 @@ import {
   normalizeIssueIdentifier as normalizeIssueReferenceIdentifier,
 } from "@paperclipai/shared";
 import { conflict, HttpError, notFound, unprocessable } from "../errors.js";
-import {
-  assertGaotMutationAllowed,
-  CanonicalProjectionMutationError,
-} from "../mycelium/projection-guard.js";
+import { assertIssueMutationIsNotCanonicalProjection } from "../mycelium/issue-projection-guard.js";
 import { isForeignKeyViolation } from "../db-errors.js";
 import { logger } from "../middleware/logger.js";
 import { parseObject } from "../adapters/utils.js";
@@ -6469,52 +6465,6 @@ export function issueService(db: Db) {
   const instanceSettings = instanceSettingsService(db);
   const treeControlSvc = issueTreeControlService(db);
 
-  /**
-   * Generic Paperclip issue writes must never alter a Mycelium-owned
-   * projection. This is intentionally kept in the service, rather than a
-   * route middleware, because runners, recovery flows, and plugins call this
-   * service directly as well.
-   */
-  async function assertIssueMutationIsNotCanonicalProjection(
-    dbOrTx: any,
-    issue: Pick<typeof issues.$inferSelect, "id" | "companyId">,
-  ): Promise<void> {
-    try {
-      await assertGaotMutationAllowed(
-        {
-          isBound: async (target) => {
-            const [binding] = await dbOrTx
-              .select({ id: genesisProjectionBindings.id })
-              .from(genesisProjectionBindings)
-              .where(
-                and(
-                  eq(genesisProjectionBindings.companyId, target.companyId),
-                  eq(genesisProjectionBindings.localTargetKind, target.localTargetKind),
-                  eq(genesisProjectionBindings.localTargetId, target.localTargetId),
-                  eq(genesisProjectionBindings.canonicalSystem, "mycelium"),
-                ),
-              )
-              .limit(1);
-            return Boolean(binding);
-          },
-        },
-        {
-          companyId: issue.companyId,
-          localTargetKind: "issue",
-          localTargetId: issue.id,
-        },
-      );
-    } catch (error) {
-      if (error instanceof CanonicalProjectionMutationError) {
-        throw conflict(
-          "This task is a Mycelium projection and may only be changed by the Mycelium projection writer.",
-          { code: "mycelium_projection_mutation_forbidden", issueId: issue.id },
-        );
-      }
-      throw error;
-    }
-  }
-
   function normalizeCreateIssueTitle(title: string) {
     return title.trim().replace(/\s+/g, " ").toLowerCase();
   }
@@ -11909,6 +11859,17 @@ export function issueService(db: Db) {
       };
 
       return db.transaction(async (tx) => {
+        const existing = await tx
+          .select({ id: issueComments.id, issueId: issueComments.issueId, companyId: issueComments.companyId })
+          .from(issueComments)
+          .where(eq(issueComments.id, commentId))
+          .for("update")
+          .then((rows) => rows[0] ?? null);
+        if (!existing) return null;
+        await assertIssueMutationIsNotCanonicalProjection(tx, {
+          id: existing.issueId,
+          companyId: existing.companyId,
+        });
         const [comment] = await tx
           .delete(issueComments)
           .where(eq(issueComments.id, commentId))
@@ -11942,6 +11903,17 @@ export function issueService(db: Db) {
       };
 
       return db.transaction(async (tx) => {
+        const existing = await tx
+          .select({ id: issueComments.id, issueId: issueComments.issueId, companyId: issueComments.companyId })
+          .from(issueComments)
+          .where(and(eq(issueComments.id, commentId), isNull(issueComments.deletedAt)))
+          .for("update")
+          .then((rows) => rows[0] ?? null);
+        if (!existing) return null;
+        await assertIssueMutationIsNotCanonicalProjection(tx, {
+          id: existing.issueId,
+          companyId: existing.companyId,
+        });
         const now = new Date();
         const [comment] = await tx
           .update(issueComments)
@@ -12029,6 +12001,10 @@ export function issueService(db: Db) {
         .then((rows: Array<{ companyId: string }>) => rows[0] ?? null);
 
       if (!issue) throw notFound("Issue not found");
+      await assertIssueMutationIsNotCanonicalProjection(dbOrTx, {
+        id: issueId,
+        companyId: issue.companyId,
+      });
 
       const currentUserRedactionOptions = {
         // Keep every read on the caller's transaction connection. Re-entering
@@ -12602,6 +12578,7 @@ export function issueService(db: Db) {
       if (!issue) throw notFound("Issue not found");
 
       return db.transaction(async (tx) => {
+        await assertIssueMutationIsNotCanonicalProjection(tx, issue);
         if (input.createdByAgentId && input.issueCommentId) {
           const [lockedIssue] = await tx
             .select({ id: issues.id })
@@ -12900,6 +12877,10 @@ export function issueService(db: Db) {
           .where(eq(issueAttachments.id, id))
           .then((rows) => rows[0] ?? null);
         if (!existing) return null;
+        await assertIssueMutationIsNotCanonicalProjection(tx, {
+          id: existing.issueId,
+          companyId: existing.companyId,
+        });
 
         await tx.delete(issueAttachments).where(eq(issueAttachments.id, id));
         await tx.delete(assets).where(eq(assets.id, existing.assetId));

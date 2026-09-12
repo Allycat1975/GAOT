@@ -4,6 +4,7 @@ import type { Db } from "@paperclipai/db";
 import { documentRevisions, documents, issueDocuments, issues } from "@paperclipai/db";
 import { isSystemIssueDocumentKey, issueDocumentKeySchema } from "@paperclipai/shared";
 import { conflict, notFound, unprocessable } from "../errors.js";
+import { assertIssueMutationIsNotCanonicalProjection } from "../mycelium/issue-projection-guard.js";
 import { insertRowsInChunks } from "./batch-insert.js";
 import type { ImportIssueDocumentRow } from "./import-write-types.js";
 
@@ -223,6 +224,7 @@ export function documentService(db: Db) {
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         try {
           return await db.transaction(async (tx) => {
+          await assertIssueMutationIsNotCanonicalProjection(tx, issue);
           const now = new Date();
           const existing = await tx
             .select({
@@ -600,6 +602,10 @@ export function documentService(db: Db) {
           .then((rows) => rows[0] ?? null);
 
         if (!existing) throw notFound("Document not found");
+        await assertIssueMutationIsNotCanonicalProjection(tx, {
+          id: input.issueId,
+          companyId: existing.companyId,
+        });
         if (existing.lockedAt) {
           throw conflict("Document is locked", {
             key: existing.key,
@@ -700,6 +706,10 @@ export function documentService(db: Db) {
           .then((rows) => rows[0] ?? null);
 
         if (!existing) throw notFound("Document not found");
+        await assertIssueMutationIsNotCanonicalProjection(tx, {
+          id: input.issueId,
+          companyId: existing.companyId,
+        });
         if (existing.lockedAt) {
           return {
             changed: false as const,
@@ -747,6 +757,10 @@ export function documentService(db: Db) {
           .then((rows) => rows[0] ?? null);
 
         if (!existing) throw notFound("Document not found");
+        await assertIssueMutationIsNotCanonicalProjection(tx, {
+          id: issueId,
+          companyId: existing.companyId,
+        });
         if (!existing.lockedAt) {
           return {
             changed: false as const,
@@ -794,6 +808,10 @@ export function documentService(db: Db) {
           .then((rows) => rows[0] ?? null);
 
         if (!existing) return null;
+        await assertIssueMutationIsNotCanonicalProjection(tx, {
+          id: issueId,
+          companyId: existing.companyId,
+        });
         if (existing.lockedAt) {
           throw conflict("Document is locked", {
             key: existing.key,
