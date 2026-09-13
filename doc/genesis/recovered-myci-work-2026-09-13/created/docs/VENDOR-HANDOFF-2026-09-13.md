@@ -9,7 +9,7 @@ document and current source as the authority, not verbal summaries.
 
 | Item | Location | State |
 | --- | --- | --- |
-| GAOT | `C:\Users\Laurien\Downloads\GAOT` | Git fork, branch `genesis/main`; local commits exist; no push was made by this work. |
+| GAOT | `C:\Users\Laurien\Downloads\GAOT` | Git fork, branch `genesis/main`; approved changes are pushed to `origin/genesis/main`. |
 | Mycelium | `C:\Users\Laurien\Downloads\MYCI COMPANY` | canonical workspace; it did not present as a Git repository during this work. Preserve all files. |
 | Normative source documents | `C:\Users\Laurien\.codex\attachments\...\pasted-text.txt` | Read the two supplied attachments before changing architecture. |
 
@@ -114,15 +114,13 @@ last-known target when Mycelium is unavailable.
 
 ## Remaining work required for production completion
 
-1. Bind the Mycelium API to the approved Supabase project with the real
-   `DATABASE_URL`, `SUPABASE_JWT_SECRET`, `MYCELIUM_API_TOKEN`, and port.
-2. Run the 21 migrations only after owner approval, then perform live A1–A9
-   rehearsals against canonical data with no fixtures.
-3. Supply the external `paperclip-evals/paperclip-skill-optimization` corpus,
-   run the full GAOT verification suite in a clean environment, and resolve
-   the embedded-Postgres Windows runner limitation.
-4. Obtain owner approval for the remote push/deployment handoff. The local
-   fork commits are `b508b1bb0` and `d11262832`.
+1. Run the live A1-A8 rehearsal matrix against the deployed GAOT/Mycelium
+   runtime. A9 already passed against the approved Supabase project.
+2. Run the full GAOT verification suite in a clean runner with Rust/Cargo and
+   Docker available; this Windows host cannot perform those two steps.
+3. The private `paperclip-evals/paperclip-skill-optimization` corpus is absent;
+   the owner-approved official Paperclip corpus waiver is recorded in
+   `doc/genesis/EVAL-CORPUS-WAIVER-2026-09-13.md`.
 
 ## Recommended takeover sequence
 
