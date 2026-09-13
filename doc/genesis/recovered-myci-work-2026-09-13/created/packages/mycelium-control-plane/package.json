@@ -1,0 +1,28 @@
+{
+  "name": "@genesis/mycelium-control-plane",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@genesis/database": "workspace:*",
+    "@genesis/domain": "workspace:*",
+    "@genesis/events": "workspace:*",
+    "@genesis/mycelium-contracts": "workspace:*",
+    "@genesis/policy-engine": "workspace:*",
+    "@genesis/role-factory": "workspace:*",
+    "kysely": "^0.27.5"
+  },
+  "devDependencies": {
+    "@genesis/test-kit": "workspace:*",
+    "vitest": "^2.1.8"
+  }
+}

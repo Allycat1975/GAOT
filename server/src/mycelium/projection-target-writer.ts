@@ -29,6 +29,7 @@ export function createGaotProjectionTargetWriter(db: Db): GaotProjectionTargetWr
   return {
     async apply(target) {
       const record = requireRecord(target.record);
+      assertProjectionKindMatchesTarget(target.projectionKind, target.localTargetKind);
       switch (target.localTargetKind) {
         case "company":
           return updateCompany(db, target.companyId, target.localTargetId, record);
@@ -51,7 +52,23 @@ export function createGaotProjectionTargetWriter(db: Db): GaotProjectionTargetWr
   };
 }
 
+function assertProjectionKindMatchesTarget(projectionKind: string, targetKind: string): void {
+  const allowed: Record<string, readonly string[]> = {
+    company: ["company"],
+    agent: ["agent", "worker"],
+    goal: ["goal"],
+    issue: ["issue", "work_unit", "work-unit"],
+    "heartbeat-run": ["run", "heartbeat_run", "heartbeat-run"],
+    document: ["document", "evidence"],
+    "cost-event": ["cost", "cost_event", "cost-event"],
+  };
+  if (!allowed[targetKind]?.includes(projectionKind)) {
+    throw new ProjectionWriteError(`Projection kind ${projectionKind} cannot target ${targetKind}`);
+  }
+}
+
 async function updateCompany(db: Db, companyId: string, id: string, record: ProjectionRecord): Promise<void> {
+  if (id !== companyId) throw new ProjectionWriteError(`Bound company target ${id} does not match company scope ${companyId}`);
   const row = await db.update(companies).set({
     name: requiredString(record, "name"),
     status: normaliseCompanyStatus(requiredString(record, "status")),

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { genesisProjectionBindings, issues } from "@paperclipai/db";
 import { conflict } from "../errors.js";
 import {
@@ -27,7 +27,10 @@ export async function assertIssueMutationIsNotCanonicalProjection(
             .where(
               and(
                 eq(genesisProjectionBindings.companyId, target.companyId),
-                eq(genesisProjectionBindings.localTargetKind, target.localTargetKind),
+                // Existing bindings use `issue`; canonical WorkUnit imports may
+                // use either explicit work-unit spelling. All are the same
+                // donor-owned presentation boundary.
+                inArray(genesisProjectionBindings.localTargetKind, ["issue", "work_unit", "work-unit"]),
                 eq(genesisProjectionBindings.localTargetId, target.localTargetId),
                 eq(genesisProjectionBindings.canonicalSystem, "mycelium"),
               ),

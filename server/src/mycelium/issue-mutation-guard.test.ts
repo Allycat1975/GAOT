@@ -43,7 +43,9 @@ describeEmbeddedPostgres("Mycelium issue projection mutation guard", () => {
       canonicalSystem: "mycelium",
       canonicalId: "work-unit-1",
       projectionKind: "work_unit",
-      localTargetKind: "issue",
+      // Exercise the explicit canonical WorkUnit alias; the route guard must
+      // also accept the legacy "issue" spelling for existing bindings.
+      localTargetKind: "work_unit",
       localTargetId: boundIssueId,
     });
 

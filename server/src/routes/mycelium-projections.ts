@@ -52,7 +52,7 @@ export function myceliumProjectionRoutes(
 
 async function companyScope(req: Request, bindings: MyceliumCompanyBindingLookup): Promise<string> {
   assertBoard(req);
-  const localCompanyId = req.params.companyId;
+  const localCompanyId = typeof req.params.companyId === "string" ? req.params.companyId : req.params.companyId?.[0];
   if (!localCompanyId) throw new HttpError(400, "Company ID is required");
   assertCompanyAccess(req, localCompanyId);
   const canonicalCompanyId = await bindings.canonicalCompanyId(localCompanyId);

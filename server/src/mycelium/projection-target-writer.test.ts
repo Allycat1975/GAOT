@@ -8,7 +8,7 @@ function dbReturning(rows: { id: string }[] = [{ id: "local-1" }]) {
   return { update: () => ({ set }) } as never;
 }
 
-const base = { companyId: "company-1", localTargetId: "local-1", projectionKind: "test" };
+const base = { companyId: "company-1", localTargetId: "local-1", projectionKind: "issue" };
 
 describe("GAOT concrete Mycelium projection targets", () => {
   it("updates every supported bound presentation target", async () => {
@@ -23,15 +23,24 @@ describe("GAOT concrete Mycelium projection targets", () => {
       ["cost-event", { amountMinor: 12, sourceKind: "MODEL_USAGE", occurredAt: "2026-09-13T00:00:00.000Z" }],
     ] as const;
     for (const [localTargetKind, record] of cases) {
-      await expect(writer.apply({ ...base, localTargetKind, record })).resolves.toBeUndefined();
+      const target = localTargetKind === "company" ? { ...base, localTargetId: base.companyId } : base;
+      const projectionKind = localTargetKind === "issue"
+        ? "work_unit"
+        : localTargetKind === "agent"
+          ? "worker"
+          : localTargetKind === "heartbeat-run"
+            ? "run"
+            : localTargetKind;
+      await expect(writer.apply({ ...target, projectionKind, localTargetKind, record })).resolves.toBeUndefined();
     }
   });
 
   it("fails closed for unsupported, malformed, or absent targets", async () => {
     const writer = createGaotProjectionTargetWriter(dbReturning([]));
-    await expect(writer.apply({ ...base, localTargetKind: "unknown", record: {} })).rejects.toThrow("Unsupported");
+    await expect(writer.apply({ ...base, localTargetKind: "unknown", record: {} })).rejects.toThrow("cannot target");
+    await expect(writer.apply({ ...base, projectionKind: "company", localTargetKind: "company", record: { name: "MYCI", status: "ACTIVE" } })).rejects.toThrow("does not match company scope");
     await expect(writer.apply({ ...base, localTargetKind: "issue", record: { title: "Missing status" } })).rejects.toThrow("requires status");
-    await expect(writer.apply({ ...base, localTargetKind: "agent", record: { displayName: "Worker", status: "INVENTED" } })).rejects.toThrow("Unknown canonical worker status");
-    await expect(writer.apply({ ...base, localTargetKind: "company", record: { name: "MYCI", status: "ACTIVE" } })).rejects.toThrow("was not found");
+    await expect(writer.apply({ ...base, projectionKind: "worker", localTargetKind: "agent", record: { displayName: "Worker", status: "INVENTED" } })).rejects.toThrow("Unknown canonical worker status");
+    await expect(writer.apply({ ...base, projectionKind: "company", localTargetKind: "company", record: { name: "MYCI", status: "ACTIVE" } })).rejects.toThrow("does not match company scope");
   });
 });

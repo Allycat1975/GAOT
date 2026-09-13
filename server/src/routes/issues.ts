@@ -40,6 +40,8 @@ import {
   documents,
   executionWorkspaces,
   heartbeatRuns,
+  genesisProjectionBindings,
+  issueAttachments,
   issueApprovals,
   issueComments,
   issueDocuments,
@@ -565,6 +567,19 @@ function noopTaskWatchdogService(): TaskWatchdogService {
 
 function buildAttachmentContentPath(attachmentId: string): string {
   return `/api/attachments/${attachmentId}/content`;
+}
+
+function issueMutationTargetId(req: Request): string | null {
+  const issuePath = req.path.match(/^\/issues\/([^/]+)(?:\/|$)/);
+  if (issuePath?.[1]) return issuePath[1];
+  const companyIssuePath = req.path.match(/^\/companies\/[^/]+\/issues\/([^/]+)(?:\/|$)/);
+  return companyIssuePath?.[1] ?? null;
+}
+
+function isIssueMutationPath(path: string, method: string): boolean {
+  if (path.match(/^\/issues\/[^/]+$/)) return method === "PATCH" || method === "DELETE";
+  return /^\/issues\/[^/]+\/(?:checkout|release|admin\/force-release|comments|documents|attachments|work-products|approvals|interactions)(?:\/|$)/.test(path)
+    || /^\/companies\/[^/]+\/issues\/[^/]+\/attachments(?:\/|$)/.test(path);
 }
 
 const GENERIC_RESPONSE_ATTACHMENT_CONTENT_TYPES = new Set(
@@ -3671,6 +3686,53 @@ export function issueRoutes(
   }
 
   const issueDetailEtag = privateJsonEtag();
+  // Mycelium-bound WorkUnit projections are presentation targets only. Block
+  // donor mutations before body parsing, storage writes, or service calls so
+  // PATCH/checkout/comment/document/attachment cannot create a second write
+  // path. Read routes and non-mutating UI state remain available.
+  router.use(async (req, res, next) => {
+    if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+      next();
+      return;
+    }
+    const issueId = issueMutationTargetId(req);
+    if (!issueId) {
+      if (req.method === "DELETE" && req.path.startsWith("/attachments/")) {
+        const attachmentId = req.path.split("/")[2];
+        if (attachmentId) {
+          const [attachment] = await db
+            .select({ issueId: issueAttachments.issueId })
+            .from(issueAttachments)
+            .where(eq(issueAttachments.id, attachmentId))
+            .limit(1);
+          if (attachment) {
+            const bound = await isMyceliumBoundIssue(attachment.issueId);
+            if (bound) {
+              res.status(409).json({
+                error: "mycelium_projection_target_locked",
+                reason: "Mycelium is the sole writer for this bound WorkUnit",
+              });
+              return;
+            }
+          }
+        }
+      }
+      next();
+      return;
+    }
+    if (!isIssueMutationPath(req.path, req.method)) {
+      next();
+      return;
+    }
+    if (await isMyceliumBoundIssue(issueId)) {
+      res.status(409).json({
+        error: "mycelium_projection_target_locked",
+        reason: "Mycelium is the sole writer for this bound WorkUnit",
+      });
+      return;
+    }
+    next();
+  });
   router.use((req, res, next) => {
     if (/^\/issues\/[^/]+(?:\/|$)/.test(req.path)) {
       issueDetailEtag(req, res, next);
@@ -3678,6 +3740,22 @@ export function issueRoutes(
     }
     next();
   });
+
+  async function isMyceliumBoundIssue(issueId: string): Promise<boolean> {
+    const [binding] = await db
+      .select({ id: genesisProjectionBindings.id })
+      .from(genesisProjectionBindings)
+      .where(and(
+        eq(genesisProjectionBindings.canonicalSystem, "mycelium"),
+        // Canonical WorkUnits may be represented by the legacy issue target
+        // or by the explicit work-unit aliases used by the projection writer.
+        // All aliases must remain read-only donor targets.
+        inArray(genesisProjectionBindings.localTargetKind, ["issue", "work_unit", "work-unit"]),
+        eq(genesisProjectionBindings.localTargetId, issueId),
+      ))
+      .limit(1);
+    return binding !== undefined;
+  }
 
   const taskWatchdogFactory: TaskWatchdogServiceFactory | undefined =
     Object.prototype.hasOwnProperty.call(serviceIndex, "taskWatchdogService")

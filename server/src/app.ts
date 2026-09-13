@@ -60,6 +60,10 @@ import { environmentService } from "./services/environments.js";
 import { environmentRuntimeService } from "./services/environment-runtime.js";
 import { projectRoutes } from "./routes/projects.js";
 import { issueRoutes } from "./routes/issues.js";
+import { myceliumProjectionIngestRoutes } from "./routes/mycelium-projection-ingest.js";
+import { createGaotProjectionTargetWriter } from "./mycelium/projection-target-writer.js";
+import { createDrizzleProjectionBindingStore, MyceliumProjectionWriter } from "./mycelium/projection-writer.js";
+import { myceliumProjectionMutationGuard } from "./mycelium/projection-mutation-guard.js";
 import { issueTreeControlRoutes } from "./routes/issue-tree-control.js";
 import { caseRoutes } from "./routes/cases.js";
 import { fileResourceRoutes } from "./routes/file-resources.js";
@@ -635,12 +639,22 @@ export async function createApp(
   );
   api.use(openApiRoutes());
   api.use("/cloud", cloudRoutes());
+  // Install before every donor route so bound target mutations fail before
+  // route validation, storage, queueing, or service-level side effects. This guard
+  // remains active even when the Mycelium read transport is offline.
+  api.use(myceliumProjectionMutationGuard(db));
   api.use("/companies", companyRoutes(db, opts.storageService));
   if (opts.myceliumApi) {
+    const projectionWriter = new MyceliumProjectionWriter(
+      createDrizzleProjectionBindingStore(db),
+      createGaotProjectionTargetWriter(db),
+    );
     api.use(myceliumProjectionRoutes(
       new HttpMyceliumReadClient(opts.myceliumApi),
       createMyceliumCompanyBindingLookup(db),
     ));
+    api.use(myceliumProjectionIngestRoutes(projectionWriter, opts.myceliumApi.bearerToken));
+    app.locals.myceliumProjectionWriter = projectionWriter;
   }
   api.use(llmRoutes(db));
   api.use(folderRoutes(db));
