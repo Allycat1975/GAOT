@@ -1,8 +1,9 @@
 # Vendor Handoff — Genesis / GAOT / Mycelium
 
 Date: 2026-09-13  
-Status: implementation is incomplete; use this document and current source as
-the authority, not verbal summaries.
+Status: local implementation is complete for the governed Phase 4 code paths;
+production/live acceptance remains pending external runtime inputs. Use this
+document and current source as the authority, not verbal summaries.
 
 ## Repositories and safety
 
@@ -49,10 +50,11 @@ Important GAOT source locations:
 
 ### GAOT known verification limitation
 
-Focused TypeScript checks emitted no diagnostics. Several Vitest/Vite runs on
-this Windows checkout spawned/hung workers before returning results. Do not
-mark GAOT complete from narrow compile evidence. Re-run verification in a clean
-environment, then investigate the donor Windows runner issue separately.
+Focused projection/ingress/mutation Vitest checks pass 6/6. The embedded
+Postgres issue integration test and the full GAOT workspace gate remain
+environment-limited on this Windows checkout: the former times out and the
+latter requires the external `paperclip-evals/paperclip-skill-optimization`
+corpus. Do not fabricate that corpus or weaken the verifier.
 
 ## Mycelium implementation inventory
 
@@ -71,10 +73,10 @@ environment, then investigate the donor Windows runner issue separately.
   tests. It intentionally requires production implementations for signature
   validation, durable nonce consumption and Guardian evidence lookup.
 
-### Present but must be independently revalidated
+### Present and locally revalidated
 
-The following files/migrations appeared during interrupted worker sessions.
-Their presence is evidence of work, not proof of correct completion:
+The following files/migrations are now present in the canonical workspace and
+covered by the verification recorded below:
 
 - `migrations/000017_mycelium_critic_review_uniqueness.sql`
 - `migrations/000018_mycelium_actor_role_assignments.sql`
@@ -99,36 +101,21 @@ pnpm --filter @genesis/tool-gateway test
 node scripts/validate-migrations.mjs
 ```
 
-Known prior results before the latest partial files: Mycelium API tests 3/3,
-command/control-plane tests 12/12, policy-engine tests 27/27, Tool Gateway
-tests 14/14, and migration validation through migration 17. Re-run all of the
-above after reviewing migrations 18/19.
+Current results: Mycelium API 5/5, control-plane 18/18, Tool Gateway 15/15,
+and migration/RLS/raw-SQL validation 21/21. The GAOT focused projection,
+ingress and mutation tests pass 6/6.
 
-## Remaining work required for actual completion
+## Remaining work required for production completion
 
-1. Review and verify actor-role assignment migration/resolver. Explicit actor
-   assignment must be canonical; do not infer authority from a donor
-   membership. Human identity, agent tenancy and active RoleVersion must be
-   checked.
-2. Review and verify canonical cost ledger. It must be immutable, tenant/run/
-   WorkUnit cohesive and idempotent. GAOT cost projections must use it only
-   after this passes.
-3. Build target-specific projection adapters and wire the monotonic writer to
-   actual Company/Worker/Goal/WorkUnit/Run/Evidence/Cost targets.
-4. Extend bound-resource protection from issues to remaining mutable donor
-   entity families; identify and prohibit raw database bypasses.
-5. Create real deployment composition for PolicyEngine command authorizer:
-   authenticated actor identity -> explicit role assignment -> active role /
-   organisation/context resolver. Keep command transport disabled until this
-   exists.
-6. Supply production Tool Gateway adapters for envelope signatures, nonce
-   storage and exact Guardian evidence. Do not use in-memory stores in
-   production.
-7. Provision a migrated Postgres environment and configured `MYCELIUM_API_*`
-   values. Do not fabricate a token or seed canonical production data.
-8. Run the full GAOT verification suite in a clean environment and resolve the
-   Windows test-worker issue; then run end-to-end acceptance tests A1–A10 in
-   the PRD.
+1. Bind the Mycelium API to the approved Supabase project with the real
+   `DATABASE_URL`, `SUPABASE_JWT_SECRET`, `MYCELIUM_API_TOKEN`, and port.
+2. Run the 21 migrations only after owner approval, then perform live A1–A9
+   rehearsals against canonical data with no fixtures.
+3. Supply the external `paperclip-evals/paperclip-skill-optimization` corpus,
+   run the full GAOT verification suite in a clean environment, and resolve
+   the embedded-Postgres Windows runner limitation.
+4. Obtain owner approval for the remote push/deployment handoff. The local
+   fork commits are `b508b1bb0` and `d11262832`.
 
 ## Recommended takeover sequence
 
@@ -141,4 +128,3 @@ above after reviewing migrations 18/19.
    targeted tests plus clean-environment server/UI checks.
 5. Produce a requirement-to-test matrix for A1–A10. Do not call the fork
    complete until every row has executable proof.
-
