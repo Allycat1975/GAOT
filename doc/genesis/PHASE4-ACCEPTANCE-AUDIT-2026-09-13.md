@@ -32,6 +32,20 @@ owner approval.
 - GAOT focused projection/ingress/mutation tests: 6/6.
 - GAOT projection-failover test: 3/3 (including binding-scoped last-known fallback); the fallback reader itself passes a focused TypeScript check.
 
+## Owner-approved update (2026-09-13)
+
+- The approved branch was pushed to `origin/genesis/main`.
+- Supabase now has all 21 migrations, a confirmed HUMAN actor, and an active
+  actor-role assignment. The API bound to the Supabase pooler and returned live
+  health; managed ES256 JWKS authentication succeeded.
+- The first live command was denied by policy because the persisted RoleVersion
+  JSON is a placeholder and fails the canonical role schema. Correcting that
+  production row requires explicit approval; no authority was granted implicitly.
+- The official Paperclip repository contains five eval YAML suites under
+  `evals/promptfoo/tests`, but the required private/absent
+  `paperclip-evals/paperclip-skill-optimization` corpus is not present and was
+  not substituted.
+
 ## External completion inputs
 
 Production completion requires the real Supabase database password/JWT secret,
