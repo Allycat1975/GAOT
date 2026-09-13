@@ -13,7 +13,7 @@ owner approval.
 | A7 | Projection writer rejects stale, replayed, conflicting and re-pointed bindings | Focused projection tests pass; distributed concurrency not rehearsed |
 | A8 | HMAC envelope, expiry, nonce replay protection and exact Guardian evidence | 15 Tool Gateway tests pass; live credential-order rehearsal pending |
 | A9 | Supabase JWT maps to active HUMAN actor and Postgres RoleVersion context | Live ES256 authentication, tenant-context resolution, and governed intent command pass (`commandId=06d24f02-5569-4f56-aedf-35b1ddbd18fd`); Supabase records one intent, domain event, and audit event |
-| A10 | 21 migration/RLS/raw-SQL checks, API/control/tool tests pass | Official Paperclip corpus substitution is owner-approved and inventory checks pass; Windows embedded-Postgres test remains a runner limitation |
+| A10 | 21 migration/RLS/raw-SQL checks, API/control/tool tests pass | Official Paperclip corpus substitution is owner-approved and inventory checks pass; production API composition is authored; Docker/embedded-Postgres execution remains unavailable on this Windows host |
 
 ## Verified commands
 
@@ -41,6 +41,11 @@ owner approval.
 - The approved schema-valid Guardian RoleVersion is active. It grants only
   `mycelium.intent.create` (`ALLOW`, `AUTO`); a live governed intent command
   returned `201` and persisted canonical/audit events.
+- A production runtime composition was added to the canonical MYCI workspace at
+  `infra/production/`: stateless API container, Supabase `DATABASE_URL`/JWKS,
+  Ollama endpoint, healthcheck, and secret-manager `.env.example`. No secret or
+  fixture data is committed. Docker is not installed on this Windows host, so
+  image build/compose startup remains an external runner step.
 - The official Paperclip repository contains five eval YAML suites under
   `evals/promptfoo/tests`, but the required private/absent
   `paperclip-evals/paperclip-skill-optimization` corpus is not present and was
