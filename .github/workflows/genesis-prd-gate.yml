@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: 22
       - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@12.4.1 --activate
+        run: corepack enable && corepack prepare pnpm@9.15.4 --activate
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Apply migrations to clean PostgreSQL
