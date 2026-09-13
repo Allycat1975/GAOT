@@ -106,6 +106,8 @@ and migration/RLS/raw-SQL validation 21/21. The GAOT focused projection,
 ingress and mutation tests pass 6/6.
 The full Mycelium workspace typecheck passes 23/23 tasks and the full workspace
 build passes 13/13 tasks.
+The full workspace test suite passes 17/17 tasks; `@genesis/tool-sdk` is
+configured with `--passWithNoTests` because it currently contains no test files.
 
 ## Remaining work required for production completion
 

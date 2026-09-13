@@ -27,6 +27,8 @@ owner approval.
 - `pnpm --filter @genesis/tool-gateway typecheck`: OK.
 - `pnpm typecheck`: 23/23 workspace tasks successful.
 - `pnpm build`: 13/13 workspace tasks successful.
+- `pnpm test`: 17/17 workspace tasks successful (including the no-test
+  `@genesis/tool-sdk` package with `--passWithNoTests`).
 - GAOT focused projection/ingress/mutation tests: 6/6.
 
 ## External completion inputs
