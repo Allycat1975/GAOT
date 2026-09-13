@@ -49,6 +49,9 @@ owner approval.
 - The runner workflow-traceability verifier is Windows-safe (`pathToFileURL`)
   and passes with 44 findings across 12 workflows. The remaining full-runner
   build stop is environmental: Rust/Cargo is not installed on this host.
+- A hosted Ubuntu workflow, `.github/workflows/genesis-prd-gate.yml`, now runs
+  the runner build plus full workspace typecheck, test, and build on every
+  `genesis/main` push, providing the missing native-toolchain verification lane.
 - The official Paperclip repository contains five eval YAML suites under
   `evals/promptfoo/tests`, but the required private/absent
   `paperclip-evals/paperclip-skill-optimization` corpus is not present and was
