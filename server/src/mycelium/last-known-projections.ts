@@ -110,13 +110,13 @@ async function listAgents(db: Db, canonicalCompanyId: string): Promise<MyceliumC
   });
 }
 
-async function listBoundRows<T extends { id: string }>(
+async function listBoundRows(
   db: Db,
   canonicalCompanyId: string,
   targetKinds: string[],
   projectionKinds: string[],
   table: any,
-  map: (row: T, binding: Binding) => Record<string, unknown>,
+  map: (row: any, binding: Binding) => Record<string, unknown>,
 ): Promise<MyceliumCollectionProjection | undefined> {
   const company = await findCompanyBinding(db, canonicalCompanyId);
   if (!company) return undefined;
@@ -131,7 +131,7 @@ async function listBoundRows<T extends { id: string }>(
     eq(table.companyId, company.companyId),
     inArray(table.id, bindings.map((item) => item.localTargetId)),
   ));
-  const byId = new Map((rows as T[]).map((row) => [row.id, row]));
+  const byId = new Map((rows as Array<{ id: string }>).map((row) => [row.id, row]));
   return bindings.flatMap((binding) => {
     const row = byId.get(binding.localTargetId);
     return row ? [map(row, binding)] : [];

@@ -30,7 +30,7 @@ owner approval.
 - `pnpm test`: 17/17 workspace tasks successful (including the no-test
   `@genesis/tool-sdk` package with `--passWithNoTests`).
 - GAOT focused projection/ingress/mutation tests: 6/6.
-- GAOT projection-failover test: 3/3 (including last-known fallback).
+- GAOT projection-failover test: 3/3 (including binding-scoped last-known fallback); the fallback reader itself passes a focused TypeScript check.
 
 ## External completion inputs
 
