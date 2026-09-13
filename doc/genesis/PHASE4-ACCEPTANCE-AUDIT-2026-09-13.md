@@ -10,7 +10,7 @@ owner approval.
 | A3 | Central donor guard plus issue route/service guards; `issue`, `work_unit`, and `work-unit` aliases covered | Local pass; live bound-target rehearsal pending |
 | A4 | Mycelium worker control gates claim, checkout, heartbeat and scheduling | Local code evidence; live rehearsal pending |
 | A5/A6 | Mycelium service requires independent Critic PASS and exact Guardian run evidence | 18 control-plane tests pass; live rehearsal pending |
-| A7 | Projection writer rejects stale, replayed, conflicting and re-pointed bindings | Focused projection tests pass; distributed concurrency not rehearsed |
+| A7 | Projection writer rejects stale, replayed, conflicting and re-pointed bindings; concrete adapters cover company, worker, goal, WorkUnit, run, activity, evidence, and cost | Focused projection/adapter/guard tests pass (8); distributed concurrency not rehearsed |
 | A8 | HMAC envelope, expiry, nonce replay protection and exact Guardian evidence | 15 Tool Gateway tests pass; live credential-order rehearsal pending |
 | A9 | Supabase JWT maps to active HUMAN actor and Postgres RoleVersion context | Live ES256 authentication, tenant-context resolution, and governed intent command pass (`commandId=06d24f02-5569-4f56-aedf-35b1ddbd18fd`); Supabase records one intent, domain event, and audit event |
 | A10 | 21 migration/RLS/raw-SQL checks, API/control/tool tests pass | Official Paperclip corpus substitution is owner-approved and inventory checks pass; production API composition is authored; Docker/embedded-Postgres execution remains unavailable on this Windows host |
