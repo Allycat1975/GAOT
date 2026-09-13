@@ -17,6 +17,21 @@ jobs:
     name: Full workspace verification
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: paperclip
+          POSTGRES_DB: paperclip
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d paperclip"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://postgres:paperclip@127.0.0.1:5432/paperclip
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,6 +46,8 @@ jobs:
         run: corepack enable && corepack prepare pnpm@12.4.1 --activate
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Apply migrations to clean PostgreSQL
+        run: pnpm db:migrate
       - name: Verify runner, capability and protocol contracts
         run: pnpm --filter @paperclipai/paperclip-runner build
       - name: Verify full workspace typecheck
