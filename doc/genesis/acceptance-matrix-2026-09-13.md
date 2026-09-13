@@ -15,12 +15,12 @@ owner-approved evaluation-corpus waiver is recorded in
 | A6 | Service requires `AWAITING_REVIEW`, `SUCCEEDED` exact run, independent Critic `PASS`, and exact-run evidence; migration 000020 mirrors the gate and its raw-SQL smoke test passes. | Proven |
 | A7 | Monotonic projection writer rejects stale/conflicting/re-pointed events; concrete seven-target adapter test passes. | Focused tests pass |
 | A8 | Gateway tests cover absent/mismatched/expired/replayed envelopes; HMAC verifier, durable nonce store, and exact Guardian evidence adapter are implemented. | Code/typecheck proven; live Supabase integration pending |
-| A9 | Active actor-to-RoleVersion resolver checks principal, tenancy, assignment interval, and active role; policy tests pass. | Proven in package tests |
+| A9 | Active actor-to-RoleVersion resolver checks principal, tenancy, assignment interval, and active role; managed ES256 JWKS authentication and a governed intent were exercised against Supabase. | Live pass: HTTP `201`; one intent, domain event, and audit event persisted |
 | A10 | Mycelium builds/typechecks/tests and all 21 migrations pass. GAOT capability inventory uses the owner-approved official Paperclip corpus waiver; generated baseline and completeness checks pass. | Partially proven: live production flows remain |
 
 ## Runtime inputs still required
 
-Supabase supplies `DATABASE_URL`; Ollama is reachable locally and supplies the
-worker model endpoint. A deployment still has to inject `MYCELIUM_API_TOKEN`,
-the API listener port, and the Ollama endpoint/model into the selected runtime.
+Supabase supplies the production database and JWKS endpoint; Ollama supplies the
+worker model endpoint locally. A deployment still has to inject the actor/runtime
+token, API listener port, and Ollama endpoint/model into the selected runtime.
 Those values are deployment secrets/configuration, not canonical fixture data.
