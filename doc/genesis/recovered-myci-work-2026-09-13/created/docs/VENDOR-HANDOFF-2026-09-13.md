@@ -104,6 +104,8 @@ node scripts/validate-migrations.mjs
 Current results: Mycelium API 5/5, control-plane 18/18, Tool Gateway 15/15,
 and migration/RLS/raw-SQL validation 21/21. The GAOT focused projection,
 ingress and mutation tests pass 6/6.
+The full Mycelium workspace typecheck passes 23/23 tasks and the full workspace
+build passes 13/13 tasks.
 
 ## Remaining work required for production completion
 

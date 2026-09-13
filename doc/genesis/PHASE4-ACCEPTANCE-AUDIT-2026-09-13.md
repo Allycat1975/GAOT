@@ -25,6 +25,8 @@ owner approval.
 - `pnpm --filter @genesis/mycelium-control-plane build`: OK.
 - `pnpm --filter @genesis/tool-gateway test`: 15/15.
 - `pnpm --filter @genesis/tool-gateway typecheck`: OK.
+- `pnpm typecheck`: 23/23 workspace tasks successful.
+- `pnpm build`: 13/13 workspace tasks successful.
 - GAOT focused projection/ingress/mutation tests: 6/6.
 
 ## External completion inputs
