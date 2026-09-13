@@ -12,8 +12,8 @@ owner approval.
 | A5/A6 | Mycelium service requires independent Critic PASS and exact Guardian run evidence | 18 control-plane tests pass; live rehearsal pending |
 | A7 | Projection writer rejects stale, replayed, conflicting and re-pointed bindings | Focused projection tests pass; distributed concurrency not rehearsed |
 | A8 | HMAC envelope, expiry, nonce replay protection and exact Guardian evidence | 15 Tool Gateway tests pass; live credential-order rehearsal pending |
-| A9 | Supabase JWT maps to active HUMAN actor and Postgres RoleVersion context | 5 API + resolver/policy tests pass; live Auth rehearsal pending |
-| A10 | 21 migration/RLS/raw-SQL checks, API/control/tool tests pass | GAOT full gate awaits external `paperclip-evals` corpus; Windows embedded-Postgres test times out |
+| A9 | Supabase JWT maps to active HUMAN actor and Postgres RoleVersion context | Live ES256 authentication, tenant-context resolution, and governed intent command pass (`commandId=06d24f02-5569-4f56-aedf-35b1ddbd18fd`); Supabase records one intent, domain event, and audit event |
+| A10 | 21 migration/RLS/raw-SQL checks, API/control/tool tests pass | Official Paperclip corpus substitution is owner-approved and inventory checks pass; Windows embedded-Postgres test remains a runner limitation |
 
 ## Verified commands
 
@@ -38,15 +38,18 @@ owner approval.
 - Supabase now has all 21 migrations, a confirmed HUMAN actor, and an active
   actor-role assignment. The API bound to the Supabase pooler and returned live
   health; managed ES256 JWKS authentication succeeded.
-- The first live command was denied by policy because the persisted RoleVersion
-  JSON is a placeholder and fails the canonical role schema. Correcting that
-  production row requires explicit approval; no authority was granted implicitly.
+- The approved schema-valid Guardian RoleVersion is active. It grants only
+  `mycelium.intent.create` (`ALLOW`, `AUTO`); a live governed intent command
+  returned `201` and persisted canonical/audit events.
 - The official Paperclip repository contains five eval YAML suites under
   `evals/promptfoo/tests`, but the required private/absent
   `paperclip-evals/paperclip-skill-optimization` corpus is not present and was
   not substituted.
 
-## External completion inputs
+## Historical external completion inputs (superseded by owner-approved waiver)
+
+The following paragraph is retained as historical context only; current status
+is the owner-approved official Paperclip eval waiver and the A1-A8 live matrix.
 
 Production completion requires the real Supabase database password/JWT secret,
 service token and deployment environment, explicit migration approval, live
