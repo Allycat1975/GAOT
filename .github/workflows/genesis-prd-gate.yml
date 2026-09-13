@@ -46,7 +46,21 @@ jobs:
         with:
           node-version: 24.11.0
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        id: install
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm install --frozen-lockfile --ignore-scripts 2>&1 | tee install.log
+      - name: Report dependency-install diagnostics
+        if: steps.install.outcome == 'failure'
+        run: |
+          {
+            echo '### Dependency-install diagnostics'
+            echo '```text'
+            tail -n 120 install.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
       - name: Restore workspace links
         run: pnpm run preflight:workspace-links
       - name: Apply migrations to clean PostgreSQL
