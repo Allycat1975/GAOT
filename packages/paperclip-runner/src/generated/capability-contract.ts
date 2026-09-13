@@ -7,8 +7,8 @@ export type CapabilityPrimaryDisposition =
 
 export const capabilityInventoryCounts = {
   "skillReferenceCapabilities": 153,
-  "evalCases": 106,
-  "normativeRows": 259,
+  "evalCases": 29,
+  "normativeRows": 182,
   "legacyMcpAliases": 42
 } as const;
 

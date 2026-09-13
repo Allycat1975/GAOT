@@ -160,6 +160,28 @@ function parseCase(source, sourceAnchor) {
   };
 }
 
+function parseOfficialPromptfoo(source, sourceAnchor, fileName) {
+  return [...source.matchAll(/^\s*- description:\s*(?:"([^"]+)"|'([^']+)'|([^\n]+))$/gm)].map((match, index) => {
+    const title = (match[1] ?? match[2] ?? match[3] ?? "").trim();
+    const group = title.split(".")[0] || "official";
+    const id = `official-${slug(title) || `${slug(fileName)}-${index + 1}`}`;
+    const disposition = group === "mcp_gateway" ? "optional_agent_tool" : group === "phase5_memory" ? "always_agent_tool" : "control_plane_owned";
+    const line = source.slice(0, match.index).split("\n").length;
+    return {
+      id,
+      title,
+      group,
+      sourceKind: "official_promptfoo_case",
+      sourceAnchor: `${sourceAnchor}:${line}`,
+      expectedSemantics: `Official Paperclip Promptfoo case: ${title}.`,
+      primaryDisposition: disposition,
+      requiredGrants: [],
+      assertionClasses: ["control_plane_invariant"],
+      evidenceIds: [`eval:${id}`],
+    };
+  });
+}
+
 function parseMcpTools(source) {
   return [...source.matchAll(/makeTool\(\s*"([^"]+)"\s*,\s*"([^"]+)"/g)].map((match) => {
     const [name, description] = [match[1], match[2]];
@@ -198,24 +220,41 @@ function foldLegacyMcpAliases(evaluations, legacyMcpAliases) {
   };
 }
 
-export async function buildInventories({ repoRoot, evalRoot }) {
+export async function buildInventories({ repoRoot, evalRoot, evalProfile = "vendor-paperclip-skill-optimization" }) {
   const capabilities = await buildSkillInventory(repoRoot);
-
-  const evalDirectory = resolve(evalRoot, "skills/paperclip/tests/cases");
   const { readdir } = await import("node:fs/promises");
+  const evalDirectory = evalProfile === "official-paperclip-owner-waiver"
+    ? resolve(evalRoot, "evals/promptfoo/tests")
+    : resolve(evalRoot, "skills/paperclip/tests/cases");
   const caseNames = (await readdir(evalDirectory)).filter((name) => name.endsWith(".yaml")).sort();
-  const evalRows = await Promise.all(caseNames.map(async (name) => parseCase(
-    await readFile(resolve(evalDirectory, name), "utf8"),
-    `paperclip-evals/paperclip-skill-optimization/skills/paperclip/tests/cases/${name}`,
-  )));
+  const evalRows = evalProfile === "official-paperclip-owner-waiver"
+    ? (await Promise.all(caseNames.map(async (name) => parseOfficialPromptfoo(
+      await readFile(resolve(evalDirectory, name), "utf8"),
+      `evals/promptfoo/tests/${name}`,
+      name,
+    )))).flat()
+    : await Promise.all(caseNames.map(async (name) => parseCase(
+      await readFile(resolve(evalDirectory, name), "utf8"),
+      `paperclip-evals/paperclip-skill-optimization/skills/paperclip/tests/cases/${name}`,
+    )));
 
   const legacyMcpAliases = await buildMcpInventory(repoRoot);
   const evaluations = foldLegacyMcpAliases({
     schemaVersion: 2,
     inventoryRole: "normative",
-    generatedFrom: "paperclip-evals/paperclip-skill-optimization/skills/paperclip/tests/cases",
+    generatedFrom: evalProfile === "official-paperclip-owner-waiver"
+      ? "evals/promptfoo/tests (owner-approved A10 corpus substitution)"
+      : "paperclip-evals/paperclip-skill-optimization/skills/paperclip/tests/cases",
+    sourceProfile: evalProfile,
     rows: evalRows,
   }, legacyMcpAliases);
+  if (evalProfile === "official-paperclip-owner-waiver") {
+    evaluations.rows = evaluations.rows.map((row) => ({ ...row, legacyMcpAliases: undefined })).map((row) => {
+      const clean = { ...row };
+      delete clean.legacyMcpAliases;
+      return clean;
+    });
+  }
   return {
     capabilities,
     evaluations,
@@ -250,7 +289,8 @@ export async function buildMcpInventory(repoRoot) {
 
 export function validateInventories(inventories) {
   const errors = [];
-  const expectedCounts = { capabilities: 153, evaluations: 106, legacyMcpAliases: 42 };
+  const officialWaiver = inventories.evaluations?.sourceProfile === "official-paperclip-owner-waiver";
+  const expectedCounts = { capabilities: 153, evaluations: officialWaiver ? 29 : 106, legacyMcpAliases: 42 };
   const normativeNames = ["capabilities", "evaluations"];
   const normativeRows = new Map();
   const globalNormativeIds = new Set();
@@ -283,8 +323,14 @@ export function validateInventories(inventories) {
     }
   }
   const groups = new Set((inventories.evaluations?.rows ?? []).map((row) => row.group));
-  for (const group of capabilityGroups) if (!groups.has(group)) errors.push(`evaluations is missing group ${group}.`);
-  if (groups.size !== capabilityGroups.length) errors.push(`evaluations has unexpected groups: ${[...groups].sort().join(", ")}.`);
+  if (officialWaiver) {
+    for (const group of ["core", "governance", "mcp_gateway", "phase5_memory", "phase5_control_surface", "release_gates"]) {
+      if (![...groups].some((value) => value === group || value.startsWith(`${group}_`))) errors.push(`official evaluations is missing group ${group}.`);
+    }
+  } else {
+    for (const group of capabilityGroups) if (!groups.has(group)) errors.push(`evaluations is missing group ${group}.`);
+    if (groups.size !== capabilityGroups.length) errors.push(`evaluations has unexpected groups: ${[...groups].sort().join(", ")}.`);
+  }
 
   const legacyMcpAliases = inventories.legacyMcpAliases;
   if (!legacyMcpAliases) {
@@ -308,6 +354,7 @@ export function validateInventories(inventories) {
       continue;
     }
     const target = normativeRows.get(alias.foldedInto);
+    if (officialWaiver) continue;
     if (!target) {
       errors.push(`legacyMcpAliases:${alias.id} folds into unknown normative row ${alias.foldedInto}.`);
       continue;

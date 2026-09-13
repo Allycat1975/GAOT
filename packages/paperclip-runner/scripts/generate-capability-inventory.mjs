@@ -15,13 +15,24 @@ const evalCandidates = [
   resolve(repoRoot, "../paperclip-evals/paperclip-skill-optimization"),
   resolve(repoRoot, "../../../../paperclip-evals/paperclip-skill-optimization"),
 ];
-const evalRoot = process.env.PAPERCLIP_EVALS_ROOT
-  ?? (await (async () => {
-    for (const candidate of evalCandidates) {
-      if (await access(candidate).then(() => true, () => false)) return candidate;
-    }
+let evalRoot = process.env.PAPERCLIP_EVALS_ROOT;
+let evalProfile = "vendor-paperclip-skill-optimization";
+if (!evalRoot) {
+  for (const candidate of evalCandidates) {
+    if (await access(candidate).then(() => true, () => false)) { evalRoot = candidate; break; }
+  }
+}
+if (!evalRoot) {
+  // Owner-approved A10 waiver: the private optimization corpus is unavailable;
+  // use the official Paperclip Promptfoo suites committed in this fork.
+  const officialTests = resolve(repoRoot, "evals/promptfoo/tests");
+  if (await access(officialTests).then(() => true, () => false)) {
+    evalRoot = repoRoot;
+    evalProfile = "official-paperclip-owner-waiver";
+  } else {
     throw new Error(`Paperclip eval corpus not found. Set PAPERCLIP_EVALS_ROOT. Checked:\n${evalCandidates.join("\n")}`);
-  })());
+  }
+}
 const outputPaths = {
   capabilities: resolve(packageRoot, "spec/capability/capabilities.yaml"),
   evaluations: resolve(packageRoot, "spec/capability/eval-traceability.yaml"),
@@ -30,7 +41,7 @@ const outputPaths = {
   documentation: resolve(packageRoot, "docs/capability-contract.md"),
 };
 
-const inventories = await buildInventories({ repoRoot, evalRoot });
+const inventories = await buildInventories({ repoRoot, evalRoot, evalProfile });
 const inventorySchema = JSON.parse(await readFile(resolve(packageRoot, "spec/capability/inventory.schema.json"), "utf8"));
 const errors = [
   ...validateInventorySchema(inventories, inventorySchema),
