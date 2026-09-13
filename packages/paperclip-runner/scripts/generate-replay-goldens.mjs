@@ -45,13 +45,17 @@ for (const fixtureName of fixtureNames) {
     const path = resolve(goldenDirectory, `${fixtureName}.${kind}.json`);
     const generated = `${JSON.stringify(value, null, 2)}\n`;
     if (check) {
-      if ((await readFile(path, "utf8").catch(() => "")) !== generated) {
+      if (normaliseEol(await readFile(path, "utf8").catch(() => "")) !== normaliseEol(generated)) {
         stale.push(`${fixtureName}.${kind}.json`);
       }
     } else {
       await writeFile(path, generated);
     }
   }
+}
+
+function normaliseEol(value) {
+  return value.replace(/\r\n/g, "\n");
 }
 
 if (stale.length > 0) {

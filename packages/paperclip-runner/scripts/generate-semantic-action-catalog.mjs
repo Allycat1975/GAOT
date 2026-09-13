@@ -13,7 +13,7 @@ const generated = canonicalPaperclipSemanticActionCatalog();
 
 if (process.argv.includes("--check")) {
   const current = await readFile(outputPath, "utf8").catch(() => "");
-  if (current !== generated) {
+  if (normaliseEol(current) !== normaliseEol(generated)) {
     process.stderr.write(
       "generated/semantic-action-catalog.json is stale; run generate:semantic-action-catalog\n",
     );
@@ -23,4 +23,8 @@ if (process.argv.includes("--check")) {
   await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, generated);
   process.stdout.write(`wrote ${outputPath}\n`);
+}
+
+function normaliseEol(value) {
+  return value.replace(/\r\n/g, "\n");
 }

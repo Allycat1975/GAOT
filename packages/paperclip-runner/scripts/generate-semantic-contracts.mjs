@@ -9,11 +9,15 @@ const generated = serializeCapabilityGeneratedSemanticContracts();
 
 if (process.argv.includes("--check")) {
   const current = await readFile(outputPath, "utf8").catch(() => "");
-  if (current !== generated) {
+  if (normaliseEol(current) !== normaliseEol(generated)) {
     process.stderr.write("semantic-tool-contracts.json is stale; run generate:semantic-contracts\n");
     process.exitCode = 1;
   }
 } else {
   await writeFile(outputPath, generated);
   process.stdout.write(`wrote ${outputPath}\n`);
+}
+
+function normaliseEol(value) {
+  return value.replace(/\r\n/g, "\n");
 }

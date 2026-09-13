@@ -91,8 +91,12 @@ const document = {
 const encoded = `${JSON.stringify(document, null, 2)}\n`;
 if (process.argv.includes("--check")) {
   const current = await readFile(outputPath, "utf8").catch(() => "");
-  if (current !== encoded) throw new Error("protocol coverage artifact is stale; run pnpm generate:protocol-coverage");
+  if (normaliseEol(current) !== normaliseEol(encoded)) throw new Error("protocol coverage artifact is stale; run pnpm generate:protocol-coverage");
 } else {
   await writeFile(outputPath, encoded);
   process.stdout.write(`Wrote ${outputPath}\n`);
+}
+
+function normaliseEol(value) {
+  return value.replace(/\r\n/g, "\n");
 }
