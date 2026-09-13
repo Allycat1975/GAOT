@@ -1,0 +1,37 @@
+import { describe, expect, it } from "vitest";
+import { createGaotProjectionTargetWriter } from "./projection-target-writer.js";
+
+function dbReturning(rows: { id: string }[] = [{ id: "local-1" }]) {
+  const returning = async () => rows;
+  const where = () => ({ returning });
+  const set = () => ({ where });
+  return { update: () => ({ set }) } as never;
+}
+
+const base = { companyId: "company-1", localTargetId: "local-1", projectionKind: "test" };
+
+describe("GAOT concrete Mycelium projection targets", () => {
+  it("updates every supported bound presentation target", async () => {
+    const writer = createGaotProjectionTargetWriter(dbReturning());
+    const cases = [
+      ["company", { name: "MYCI", status: "ACTIVE" }],
+      ["agent", { displayName: "Worker", status: "AVAILABLE" }],
+      ["goal", { title: "Goal", description: "Canonical", status: "ACTIVE" }],
+      ["issue", { title: "Work", description: "Canonical", status: "AWAITING_REVIEW" }],
+      ["heartbeat-run", { status: "SUCCEEDED" }],
+      ["document", { kind: "REPORT", uri: "mycelium://evidence/1" }],
+      ["cost-event", { amountMinor: 12, sourceKind: "MODEL_USAGE", occurredAt: "2026-09-13T00:00:00.000Z" }],
+    ] as const;
+    for (const [localTargetKind, record] of cases) {
+      await expect(writer.apply({ ...base, localTargetKind, record })).resolves.toBeUndefined();
+    }
+  });
+
+  it("fails closed for unsupported, malformed, or absent targets", async () => {
+    const writer = createGaotProjectionTargetWriter(dbReturning([]));
+    await expect(writer.apply({ ...base, localTargetKind: "unknown", record: {} })).rejects.toThrow("Unsupported");
+    await expect(writer.apply({ ...base, localTargetKind: "issue", record: { title: "Missing status" } })).rejects.toThrow("requires status");
+    await expect(writer.apply({ ...base, localTargetKind: "agent", record: { displayName: "Worker", status: "INVENTED" } })).rejects.toThrow("Unknown canonical worker status");
+    await expect(writer.apply({ ...base, localTargetKind: "company", record: { name: "MYCI", status: "ACTIVE" } })).rejects.toThrow("was not found");
+  });
+});
