@@ -53,9 +53,10 @@ owner approval.
   the runner build plus full workspace typecheck, test, and build on every
   `genesis/main` push, providing the missing native-toolchain verification lane.
 - The official Paperclip repository contains five eval YAML suites under
-  `evals/promptfoo/tests`, but the required private/absent
-  `paperclip-evals/paperclip-skill-optimization` corpus is not present and was
-  not substituted.
+  `evals/promptfoo/tests`. The required private
+  `paperclip-evals/paperclip-skill-optimization` corpus is absent; the
+  owner-approved waiver uses the official Promptfoo cases and is documented in
+  `EVAL-CORPUS-WAIVER-2026-09-13.md`.
 
 ## Historical external completion inputs (superseded by owner-approved waiver)
 
@@ -65,4 +66,5 @@ is the owner-approved official Paperclip eval waiver and the A1-A8 live matrix.
 Production completion requires the real Supabase database password/JWT secret,
 service token and deployment environment, explicit migration approval, live
 A1–A9 rehearsals, and the vendor `paperclip-evals/paperclip-skill-optimization`
-corpus. No fixtures or substitute corpus may be used.
+corpus. That prerequisite list is superseded by the owner-approved waiver.
+No fixture data is accepted as production evidence.
