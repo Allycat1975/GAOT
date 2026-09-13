@@ -60,6 +60,8 @@ jobs:
             tail -n 120 install.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          diag=$(tail -n 20 install.log | tr '\n' ' ' | cut -c1-900)
+          echo "::error title=Dependency install::$diag"
           exit 1
       - name: Restore workspace links
         run: pnpm run preflight:workspace-links
