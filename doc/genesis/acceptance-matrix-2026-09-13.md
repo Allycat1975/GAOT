@@ -1,8 +1,9 @@
 # Genesis / Mycelium PRD acceptance evidence
 
 This matrix records current proof without treating implementation intent as
-acceptance. Production deployment and the external Paperclip eval corpus are
-not present in this checkout.
+acceptance. Production deployment is not present in this checkout. The
+owner-approved evaluation-corpus waiver is recorded in
+`EVAL-CORPUS-WAIVER-2026-09-13.md`.
 
 | Gate | Current evidence | Result |
 | --- | --- | --- |
@@ -15,7 +16,7 @@ not present in this checkout.
 | A7 | Monotonic projection writer rejects stale/conflicting/re-pointed events; concrete seven-target adapter test passes. | Focused tests pass |
 | A8 | Gateway tests cover absent/mismatched/expired/replayed envelopes; HMAC verifier, durable nonce store, and exact Guardian evidence adapter are implemented. | Code/typecheck proven; live Supabase integration pending |
 | A9 | Active actor-to-RoleVersion resolver checks principal, tenancy, assignment interval, and active role; policy tests pass. | Proven in package tests |
-| A10 | Mycelium builds/typechecks/tests and all 21 migrations pass. GAOT full server gate remains blocked by the absent external eval corpus and generated capability baseline. | Partially proven |
+| A10 | Mycelium builds/typechecks/tests and all 21 migrations pass. GAOT capability inventory uses the owner-approved official Paperclip corpus waiver; generated baseline and completeness checks pass. | Partially proven: live production flows remain |
 
 ## Runtime inputs still required
 
