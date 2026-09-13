@@ -46,7 +46,9 @@ jobs:
         with:
           node-version: 24.11.0
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Restore workspace links
+        run: pnpm run preflight:workspace-links
       - name: Apply migrations to clean PostgreSQL
         run: pnpm db:migrate
       - name: Verify runner, capability and protocol contracts
