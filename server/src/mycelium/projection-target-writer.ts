@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import {
+  activityLog,
   agents,
   companies,
   costEvents,
@@ -45,6 +46,8 @@ export function createGaotProjectionTargetWriter(db: Db): GaotProjectionTargetWr
           return updateEvidence(db, target.companyId, target.localTargetId, record);
         case "cost-event":
           return updateCost(db, target.companyId, target.localTargetId, record);
+        case "activity":
+          return createActivity(db, target.companyId, target.localTargetId, record);
         default:
           throw new ProjectionWriteError(`Unsupported GAOT projection target kind: ${target.localTargetKind}`);
       }
@@ -61,6 +64,7 @@ function assertProjectionKindMatchesTarget(projectionKind: string, targetKind: s
     "heartbeat-run": ["run", "heartbeat_run", "heartbeat-run"],
     document: ["document", "evidence"],
     "cost-event": ["cost", "cost_event", "cost-event"],
+    activity: ["activity", "domain_event", "event"],
   };
   if (!allowed[targetKind]?.includes(projectionKind)) {
     throw new ProjectionWriteError(`Projection kind ${projectionKind} cannot target ${targetKind}`);
@@ -137,6 +141,36 @@ async function updateCost(db: Db, companyId: string, id: string, record: Project
   requireBoundRow(row, companyId, id, "cost-event");
 }
 
+/**
+ * Domain activity is append-only in the canonical plane.  GAOT materialises
+ * it as a local activity-log row so an offline read can still show the last
+ * known canonical event.  It is intentionally an INSERT adapter: activity
+ * events are never rewritten in place by a later projection event.
+ */
+async function createActivity(db: Db, companyId: string, id: string, record: ProjectionRecord): Promise<void> {
+  if (!uuidPattern.test(id)) {
+    throw new ProjectionWriteError(`Activity projection target ${id} must be a UUID`);
+  }
+  const type = requiredString(record, "type");
+  const summary = requiredString(record, "summary");
+  const occurredAt = new Date(requiredString(record, "occurredAt"));
+  if (Number.isNaN(occurredAt.valueOf())) {
+    throw new ProjectionWriteError("Activity projection occurredAt must be an ISO timestamp");
+  }
+  const rows = await db.insert(activityLog).values({
+    id,
+    companyId,
+    actorType: "system",
+    actorId: "mycelium",
+    action: type,
+    entityType: "mycelium.domain_event",
+    entityId: id,
+    details: { summary },
+    createdAt: occurredAt,
+  }).returning({ id: activityLog.id });
+  requireBoundRow(rows, companyId, id, "activity");
+}
+
 function requireRecord(value: unknown): ProjectionRecord {
   if (typeof value !== "object" || value === null || Array.isArray(value)) throw new ProjectionWriteError("Projection record must be an object");
   return value as ProjectionRecord;
@@ -164,3 +198,5 @@ function mappedStatus(status: string, values: Record<string, string>, target: st
   if (result === undefined) throw new ProjectionWriteError(`Unknown canonical ${target} status: ${status}`);
   return result;
 }
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

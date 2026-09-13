@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { genesisProjectionBindings, type Db } from "@paperclipai/db";
 
@@ -24,12 +24,15 @@ export function myceliumProjectionMutationGuard(db: Db): RequestHandler {
       next();
       return;
     }
+    const targetKinds = target.localTargetKind === "issue"
+      ? ["issue", "work_unit", "work-unit"]
+      : [target.localTargetKind];
     const [binding] = await db
       .select({ id: genesisProjectionBindings.id })
       .from(genesisProjectionBindings)
       .where(and(
         eq(genesisProjectionBindings.canonicalSystem, "mycelium"),
-        eq(genesisProjectionBindings.localTargetKind, target.localTargetKind),
+        inArray(genesisProjectionBindings.localTargetKind, targetKinds),
         eq(genesisProjectionBindings.localTargetId, target.localTargetId),
       ))
       .limit(1);
@@ -63,6 +66,13 @@ function resolveProjectionMutationTarget(path: string, method: string): Projecti
 
   const goal = path.match(/^\/goals\/([^/]+)\/?$/);
   if (goal?.[1]) return { localTargetKind: "goal", localTargetId: goal[1] };
+
+  // WorkUnits are presented by the donor issue surface. Keep the alias
+  // here so the database lookup can fail closed for either binding spelling;
+  // the issue route also resolves human-readable identifiers before its
+  // service-level child-resource guard runs.
+  const issue = path.match(/^\/issues\/([^/]+)(?:\/|$)/);
+  if (issue?.[1]) return { localTargetKind: "issue", localTargetId: issue[1] };
 
   const run = path.match(/^\/heartbeat-runs\/([^/]+)(?:\/|$)/);
   if (run?.[1]) return { localTargetKind: "heartbeat-run", localTargetId: run[1] };

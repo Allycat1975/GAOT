@@ -1,5 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import {
+  activityLog,
   agents,
   companies,
   costEvents,
@@ -59,13 +60,17 @@ export function createLastKnownProjectionPort(db: Db): LastKnownProjectionPort {
       canonicalId: binding.canonicalId, canonicalVersion: version(binding), sourceHash: binding.sourceHash ?? "", observedAt: binding.observedAt.toISOString(), companyId: id,
       workerId: row.agentId, status: row.status,
     })),
-    listActivity: async (id) => {
-      const company = await findCompanyBinding(db, id);
-      if (!company) return undefined;
-      // Activity has no target binding; do not expose donor activity as a
-      // canonical fallback. An empty collection is an honest last-known view.
-      return [];
-    },
+    listActivity: (id) => listBoundRows(db, id, ["activity"], ["activity", "domain_event", "event"], activityLog, (row, binding) => {
+      const details = row.details;
+      const summary = typeof details === "object" && details !== null && !Array.isArray(details)
+        && typeof (details as Record<string, unknown>).summary === "string"
+        ? (details as Record<string, unknown>).summary as string
+        : row.action;
+      return {
+        canonicalId: binding.canonicalId, canonicalVersion: version(binding), sourceHash: binding.sourceHash ?? "", observedAt: binding.observedAt.toISOString(), companyId: id,
+        type: row.action, summary, occurredAt: row.createdAt.toISOString(),
+      };
+    }),
     listCosts: (id) => listBoundRows(db, id, ["cost-event"], ["cost", "cost_event", "cost-event"], costEvents, (row, binding) => ({
       canonicalId: binding.canonicalId, canonicalVersion: version(binding), sourceHash: binding.sourceHash ?? "", observedAt: binding.observedAt.toISOString(), companyId: id,
       amountMinor: row.costCents, sourceKind: row.billingType, occurredAt: row.occurredAt.toISOString(),

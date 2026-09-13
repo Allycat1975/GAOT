@@ -6,6 +6,7 @@ describe("projection mutation route guard", () => {
     expect(projectionMutationTarget("/companies/co-1/archive", "POST")).toEqual({ localTargetKind: "company", localTargetId: "co-1" });
     expect(projectionMutationTarget("/agents/agent-1/pause", "POST")).toEqual({ localTargetKind: "agent", localTargetId: "agent-1" });
     expect(projectionMutationTarget("/goals/goal-1", "PATCH")).toEqual({ localTargetKind: "goal", localTargetId: "goal-1" });
+    expect(projectionMutationTarget("/issues/issue-1/checkout", "POST")).toEqual({ localTargetKind: "issue", localTargetId: "issue-1" });
     expect(projectionMutationTarget("/heartbeat-runs/run-1/cancel", "POST")).toEqual({ localTargetKind: "heartbeat-run", localTargetId: "run-1" });
     expect(projectionMutationTarget("/documents/doc-1", "DELETE")).toEqual({ localTargetKind: "document", localTargetId: "doc-1" });
     expect(projectionMutationTarget("/cost-events/cost-1", "PUT")).toEqual({ localTargetKind: "cost-event", localTargetId: "cost-1" });

@@ -5,7 +5,7 @@ function dbReturning(rows: { id: string }[] = [{ id: "local-1" }]) {
   const returning = async () => rows;
   const where = () => ({ returning });
   const set = () => ({ where });
-  return { update: () => ({ set }) } as never;
+  return { update: () => ({ set }), insert: () => ({ values: () => ({ returning }) }) } as never;
 }
 
 const base = { companyId: "company-1", localTargetId: "local-1", projectionKind: "issue" };
@@ -21,16 +21,23 @@ describe("GAOT concrete Mycelium projection targets", () => {
       ["heartbeat-run", { status: "SUCCEEDED" }],
       ["document", { kind: "REPORT", uri: "mycelium://evidence/1" }],
       ["cost-event", { amountMinor: 12, sourceKind: "MODEL_USAGE", occurredAt: "2026-09-13T00:00:00.000Z" }],
+      ["activity", { type: "workunit.changed", summary: "mycelium.work_unit.workunit.changed", occurredAt: "2026-09-13T00:00:00.000Z" }],
     ] as const;
     for (const [localTargetKind, record] of cases) {
-      const target = localTargetKind === "company" ? { ...base, localTargetId: base.companyId } : base;
+      const target = localTargetKind === "company"
+        ? { ...base, localTargetId: base.companyId }
+        : localTargetKind === "activity"
+          ? { ...base, localTargetId: "00000000-0000-4000-8000-000000000001" }
+          : base;
       const projectionKind = localTargetKind === "issue"
         ? "work_unit"
         : localTargetKind === "agent"
           ? "worker"
-          : localTargetKind === "heartbeat-run"
-            ? "run"
-            : localTargetKind;
+            : localTargetKind === "heartbeat-run"
+              ? "run"
+              : localTargetKind === "activity"
+                ? "event"
+              : localTargetKind;
       await expect(writer.apply({ ...target, projectionKind, localTargetKind, record })).resolves.toBeUndefined();
     }
   });
