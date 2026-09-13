@@ -1,0 +1,41 @@
+name: Genesis PRD gate
+
+on:
+  push:
+    branches: [genesis/main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: genesis-prd-gate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Full workspace verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@12.4.1 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify runner, capability and protocol contracts
+        run: pnpm --filter @paperclipai/paperclip-runner build
+      - name: Verify full workspace typecheck
+        run: pnpm typecheck
+      - name: Verify full workspace tests
+        run: pnpm test
+      - name: Verify full workspace build
+        run: pnpm build
