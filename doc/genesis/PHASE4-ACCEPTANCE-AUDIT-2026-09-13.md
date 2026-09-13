@@ -46,6 +46,9 @@ owner approval.
   Ollama endpoint, healthcheck, and secret-manager `.env.example`. No secret or
   fixture data is committed. Docker is not installed on this Windows host, so
   image build/compose startup remains an external runner step.
+- The runner workflow-traceability verifier is Windows-safe (`pathToFileURL`)
+  and passes with 44 findings across 12 workflows. The remaining full-runner
+  build stop is environmental: Rust/Cargo is not installed on this host.
 - The official Paperclip repository contains five eval YAML suites under
   `evals/promptfoo/tests`, but the required private/absent
   `paperclip-evals/paperclip-skill-optimization` corpus is not present and was
