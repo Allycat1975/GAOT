@@ -63,6 +63,7 @@ import { issueRoutes } from "./routes/issues.js";
 import { myceliumProjectionIngestRoutes } from "./routes/mycelium-projection-ingest.js";
 import { createGaotProjectionTargetWriter } from "./mycelium/projection-target-writer.js";
 import { createDrizzleProjectionBindingStore, MyceliumProjectionWriter } from "./mycelium/projection-writer.js";
+import { createLastKnownProjectionPort } from "./mycelium/last-known-projections.js";
 import { myceliumProjectionMutationGuard } from "./mycelium/projection-mutation-guard.js";
 import { issueTreeControlRoutes } from "./routes/issue-tree-control.js";
 import { caseRoutes } from "./routes/cases.js";
@@ -652,6 +653,7 @@ export async function createApp(
     api.use(myceliumProjectionRoutes(
       new HttpMyceliumReadClient(opts.myceliumApi),
       createMyceliumCompanyBindingLookup(db),
+      createLastKnownProjectionPort(db),
     ));
     api.use(myceliumProjectionIngestRoutes(projectionWriter, opts.myceliumApi.bearerToken));
     app.locals.myceliumProjectionWriter = projectionWriter;

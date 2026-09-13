@@ -46,6 +46,7 @@ Important GAOT source locations:
 - Status mapper: `server/src/mycelium/status-mapping.ts`
 - Scheduling guard: `server/src/mycelium/worker-control.ts`
 - Shared issue guard: `server/src/mycelium/issue-projection-guard.ts`
+- Binding-scoped A1 last-known fallback: `server/src/mycelium/last-known-projections.ts`
 - Read-only GAOT facade/UI: `server/src/routes/mycelium-projections.ts`, `ui/src/pages/MyceliumControlPlane.tsx`
 
 ### GAOT known verification limitation
@@ -108,6 +109,8 @@ The full Mycelium workspace typecheck passes 23/23 tasks and the full workspace
 build passes 13/13 tasks.
 The full workspace test suite passes 17/17 tasks; `@genesis/tool-sdk` is
 configured with `--passWithNoTests` because it currently contains no test files.
+GAOT projection failover tests pass 3/3, including serving a binding-scoped
+last-known target when Mycelium is unavailable.
 
 ## Remaining work required for production completion
 

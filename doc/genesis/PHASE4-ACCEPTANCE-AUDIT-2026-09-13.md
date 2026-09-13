@@ -6,7 +6,7 @@ owner approval.
 
 | Gate | Current evidence | Status |
 |---|---|---|
-| A1/A2 | Read-only projection facade and canonical command/history are separate | Live failover rehearsal pending |
+| A1/A2 | Read-only projection facade and canonical command/history are separate; GAOT now serves binding-scoped last-known targets when Mycelium is unavailable | A1 local failover test passes; live A1/A2 rehearsal pending |
 | A3 | Central donor guard plus issue route/service guards; `issue`, `work_unit`, and `work-unit` aliases covered | Local pass; live bound-target rehearsal pending |
 | A4 | Mycelium worker control gates claim, checkout, heartbeat and scheduling | Local code evidence; live rehearsal pending |
 | A5/A6 | Mycelium service requires independent Critic PASS and exact Guardian run evidence | 18 control-plane tests pass; live rehearsal pending |
@@ -30,6 +30,7 @@ owner approval.
 - `pnpm test`: 17/17 workspace tasks successful (including the no-test
   `@genesis/tool-sdk` package with `--passWithNoTests`).
 - GAOT focused projection/ingress/mutation tests: 6/6.
+- GAOT projection-failover test: 3/3 (including last-known fallback).
 
 ## External completion inputs
 
