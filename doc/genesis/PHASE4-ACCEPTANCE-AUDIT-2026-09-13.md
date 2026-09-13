@@ -18,7 +18,7 @@ owner approval.
 ## Verified commands
 
 - `pnpm db:validate`: 21 migrations, RLS smoke and Guardian raw-SQL guard all OK.
-- `pnpm --filter @genesis/mycelium-api test`: 5/5.
+- `pnpm --filter @genesis/mycelium-api test`: 6/6.
 - `pnpm --filter @genesis/mycelium-api typecheck`: OK.
 - `pnpm --filter @genesis/mycelium-api build`: OK.
 - `pnpm --filter @genesis/mycelium-control-plane test`: 18/18.
