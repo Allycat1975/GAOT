@@ -82,7 +82,10 @@ export function encodeInventory(value) {
 }
 
 export function decodeInventory(source) {
-  const json = source.startsWith(sourceHeader) ? source.slice(sourceHeader.length) : source;
+  // Generated inventories may be checked out with CRLF line endings; compare
+  // the exact header after normalising only the newline representation.
+  const normalised = source.replace(/\r\n/g, "\n");
+  const json = normalised.startsWith(sourceHeader) ? normalised.slice(sourceHeader.length) : normalised;
   return JSON.parse(json);
 }
 
