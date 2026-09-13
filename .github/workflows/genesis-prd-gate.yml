@@ -68,7 +68,17 @@ jobs:
       - name: Apply migrations to clean PostgreSQL
         run: pnpm db:migrate
       - name: Verify runner, capability and protocol contracts
-        run: pnpm --filter @paperclipai/paperclip-runner build
+        id: runner-build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm --filter @paperclipai/paperclip-runner build 2>&1 | tee runner-build.log
+      - name: Report runner-build diagnostics
+        if: steps.runner-build.outcome == 'failure'
+        run: |
+          diag=$(tail -n 30 runner-build.log | tr '\n' ' ' | cut -c1-900)
+          echo "::error title=Runner build::$diag"
+          exit 1
       - name: Verify full workspace typecheck
         run: pnpm typecheck
       - name: Verify full workspace tests
