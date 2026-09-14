@@ -10,7 +10,8 @@ RUN set -eux; \
     > /etc/apt/apt.conf.d/80-genesis-retry; \
   installed=0; \
   for attempt in 1 2 3; do \
-    if apt-get update && apt-get install -y --no-install-recommends ca-certificates gosu curl gh git wget ripgrep python3 tini; then \
+    if apt-get update && apt-get install -y --no-install-recommends ca-certificates gosu curl gh git wget ripgrep python3 tini \
+    ; then \
       installed=1; break; \
     fi; \
     apt-get clean; rm -rf /var/lib/apt/lists/*; \
