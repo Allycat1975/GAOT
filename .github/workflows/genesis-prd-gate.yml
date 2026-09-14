@@ -80,7 +80,17 @@ jobs:
           echo "::error title=Runner build::$diag"
           exit 1
       - name: Verify full workspace typecheck
-        run: pnpm typecheck
+        id: workspace-typecheck
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm typecheck 2>&1 | tee workspace-typecheck.log
+      - name: Report workspace-typecheck diagnostics
+        if: steps.workspace-typecheck.outcome == 'failure'
+        run: |
+          diag=$(tail -n 30 workspace-typecheck.log | tr '\n' ' ' | cut -c1-900)
+          echo "::error title=Workspace typecheck::$diag"
+          exit 1
       - name: Verify full workspace tests
         run: pnpm test
       - name: Verify full workspace build
