@@ -179,7 +179,13 @@ async function createApp(
     source: "local_implicit",
     isInstanceAdmin: false,
   },
-  db: unknown = {},
+  db: unknown = {
+    select: () => ({
+      from: () => ({
+        where: () => ({ limit: async () => [] }),
+      }),
+    }),
+  },
 ) {
   const [{ issueRoutes }, { errorHandler }] = await Promise.all([
     vi.importActual<typeof import("../routes/issues.js")>("../routes/issues.js"),
