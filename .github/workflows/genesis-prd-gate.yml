@@ -30,8 +30,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-    env:
-      DATABASE_URL: postgres://postgres:paperclip@127.0.0.1:5432/paperclip
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,6 +64,8 @@ jobs:
       - name: Restore workspace links
         run: pnpm run preflight:workspace-links
       - name: Apply migrations to clean PostgreSQL
+        env:
+          DATABASE_URL: postgres://postgres:paperclip@127.0.0.1:5432/paperclip
         run: pnpm db:migrate
       - name: Verify runner, capability and protocol contracts
         id: runner-build
