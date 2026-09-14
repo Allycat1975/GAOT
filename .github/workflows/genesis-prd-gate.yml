@@ -79,6 +79,8 @@ jobs:
           diag=$(tail -n 30 runner-build.log | tr '\n' ' ' | cut -c1-900)
           echo "::error title=Runner build::$diag"
           exit 1
+      - name: Build runner test binaries
+        run: pnpm --filter @paperclipai/paperclip-runner run build:runner-binaries
       - name: Verify full workspace typecheck
         id: workspace-typecheck
         continue-on-error: true
