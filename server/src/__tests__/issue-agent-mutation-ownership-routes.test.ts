@@ -2583,8 +2583,8 @@ describe("agent issue mutation checkout ownership", () => {
         if (keys.includes("agentCompanyId")) return runRows;
         return [{ id: peerAgentId, companyId, permissions: {}, role: "engineer", reportsTo: null }];
       };
-      const buildQuery = (selection: Record<string, unknown>) => {
-        const rows = rowsForSelection(selection);
+      const buildQuery = (selection: Record<string, unknown>, bindingQuery = false) => {
+        const rows = bindingQuery ? [] : rowsForSelection(selection);
         const whereResult = {
           orderBy: vi.fn(async () => []),
           limit: vi.fn(() => ({
@@ -2601,7 +2601,7 @@ describe("agent issue mutation checkout ownership", () => {
       return {
         transaction: async (callback: (tx: Record<string, never>) => Promise<unknown>) => callback({}),
         select: vi.fn((selection: Record<string, unknown> = {}) => ({
-          from: vi.fn(() => buildQuery(selection)),
+          from: vi.fn((table: Parameters<typeof getTableName>[0]) => buildQuery(selection, getTableName(table) === "genesis_projection_bindings")),
         })),
       };
     }

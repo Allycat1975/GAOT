@@ -157,15 +157,18 @@ function createRunContextDb(contextSnapshot: Record<string, unknown>) {
   return {
     select: vi.fn(() => ({
       from: vi.fn(() => ({
-        where: vi.fn(() => ({
-          then: async (resolve: (rows: unknown[]) => unknown) =>
-            resolve([{
+        where: vi.fn(() => {
+          const rows = [{
               id: "run-1",
               companyId,
               agentId: "agent-1",
               contextSnapshot,
-            }]),
-        })),
+            }];
+          return {
+            limit: async () => [],
+            then: async (resolve: (rows: unknown[]) => unknown) => resolve(rows),
+          };
+        }),
       })),
     })),
   };
