@@ -16,8 +16,18 @@ const mockAgentService = vi.hoisted(() => ({
 
 const mockTrackAgentTaskCompleted = vi.hoisted(() => vi.fn());
 const mockGetTelemetryClient = vi.hoisted(() => vi.fn());
+let mockDbLimitCalls = 0;
 const mockDbSelectWhere = vi.hoisted(() => vi.fn(() => ({
-  limit: vi.fn(async () => []),
+  limit: vi.fn(() => ({
+    then: (resolve: (rows: unknown[]) => unknown, reject?: (reason: unknown) => unknown) =>
+      Promise.resolve(mockDbLimitCalls++ === 0 ? [] : [{
+        id: "22222222-2222-4222-8222-222222222222",
+        companyId: "company-1",
+        agentId: "agent-1",
+        contextSnapshot: { issueId: "11111111-1111-4111-8111-111111111111" },
+        permissions: null,
+      }]).then(resolve, reject),
+  })),
   for: () => ({
     then: (onFulfilled: (rows: unknown[]) => unknown, onRejected?: (reason: unknown) => unknown) =>
       Promise.resolve([{
@@ -158,6 +168,7 @@ async function createApp(actor: Record<string, unknown>) {
 
 describe("issue telemetry routes", () => {
   beforeEach(() => {
+    mockDbLimitCalls = 0;
     vi.resetModules();
     vi.doUnmock("@paperclipai/shared/telemetry");
     vi.doUnmock("../telemetry.js");

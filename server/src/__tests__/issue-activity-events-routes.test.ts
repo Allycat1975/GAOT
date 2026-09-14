@@ -145,7 +145,13 @@ function registerModuleMocks() {
   }));
 }
 
-async function createApp(db: unknown = {}) {
+async function createApp(db: unknown = {
+  select: () => ({
+    from: () => ({
+      where: () => routeQueryResult([]),
+    }),
+  }),
+}) {
   const [{ issueRoutes }, { errorHandler }] = await Promise.all([
     vi.importActual<typeof import("../routes/issues.js")>("../routes/issues.js"),
     vi.importActual<typeof import("../middleware/index.js")>("../middleware/index.js"),
@@ -578,8 +584,12 @@ describe("issue activity event routes", () => {
     const dbMock = {
       transaction: async (callback: (tx: unknown) => Promise<unknown>) => callback({}),
       select: () => ({
-        from: () => ({
-          where: () => routeQueryResult([handoffActivityRow]),
+        from: (table: unknown) => ({
+          where: () => routeQueryResult(
+            getTableName(table as Parameters<typeof getTableName>[0]) === "genesis_projection_bindings"
+              ? []
+              : [handoffActivityRow],
+          ),
         }),
       }),
     };
