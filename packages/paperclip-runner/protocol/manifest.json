@@ -262,133 +262,133 @@
     },
     {
       "path": "fixtures/replay/golden/duplicate-event.snapshot.json",
-      "sha256": "b79c7b698123f70a406774f3295111091894453f9727dd76a6ea5451ff0a2193",
+      "sha256": "24a6c221f9d46824128cde009b277dae2ea8672a608cf7fa2d7e4a714e38bc92",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/duplicate-event.summary.json",
-      "sha256": "2d89ea724f7c64a49f64fee50d0e182a316e4f4b255127c391b6c2582e73aa97",
+      "sha256": "dcbb2dae5810649cc59c6c0fe136e1033131d9510ebcbcc5f3435bfa998b95c9",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/failed-run.snapshot.json",
-      "sha256": "5d0cae094fa1fe6081976e8c07cdaa34354c064519e72d62c4043057d98105ce",
+      "sha256": "a2bb468e3ca94b092a86afb8a57d2d05e0ce3cd6e9f87927dea81aef5aa32dd1",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/failed-run.summary.json",
-      "sha256": "225ca4382f001e43dafcc4b163dfd61ad2f2b3ecab34930b0d85074fe8ad125b",
+      "sha256": "d7ac19d40b5d1d6106e2232cd2436ba1c4232bc6daa8a71957f12300ba851f65",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/happy-path.snapshot.json",
-      "sha256": "31558ad231bafe051720ee404fb0198c10e4202de8d6868d272715deeb8fc237",
+      "sha256": "037c114df8f205a13fa9070b07e6f9707218b8249bd196925246b054a7690853",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/happy-path.summary.json",
-      "sha256": "23feeb0f877d871e3f81e8338f3fbf6e6378ecec5a18d9f4b374e9483032b6bb",
+      "sha256": "00d2a033518c7b3f51ecb10aa64f7456922f6b3f930d853b3db35e72eaf55325",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/interrupted-run.snapshot.json",
-      "sha256": "c744697f98ed3b6498fac888fc7fade348b80f31cbb1a0ac454dc832768fc101",
+      "sha256": "dc216831c437cc8fd2c37cee6f40f342767b21e01a511f2235a443be0d0b7b0c",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/interrupted-run.summary.json",
-      "sha256": "7e262233c2718ffb5d371e28a19b2509754a9ad2f4fd7306fbc09cc23dfc6881",
+      "sha256": "753f226607b2d97301736d7f54b281ab7157397f3f32015c644787d370526332",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-artifact-happy-path.snapshot.json",
-      "sha256": "621ca97a7f917dd6627459c9c322ee7b47bdb8a28de3ca3a7fe4ad96059ad503",
+      "sha256": "78d61ea44793714dc652b86e0db8b2fdfd8e7f8617f03de6bd88904f51b20491",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-artifact-happy-path.summary.json",
-      "sha256": "6f60a214848b8c5013713c7fb3a7f29caf6d073339ca116dddc8cdd2e7d4c880",
+      "sha256": "8b3e72e071f7458e67180fdd9933bb89cb6458f2507f2706000c1f172d1e529f",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-conflict-duplicate-retry.snapshot.json",
-      "sha256": "070364c7261d0319a0ce2dff50c4fb797a04be780ccc72d6f4006962816b9664",
+      "sha256": "c236827d1cadd5841a058c3f5ec0d6a542a4676b2ce65dee65e8435216266545",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-conflict-duplicate-retry.summary.json",
-      "sha256": "b092f7da1d0850f2c25bb9ec152b9122b8fe3dd4be3fc1c8bcb4a4df248abcf2",
+      "sha256": "f0b277d37c422b90d2012ad61ea5fbe214ebf1607f1a6c2419c518c4f9a52b7e",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-denial-redaction.snapshot.json",
-      "sha256": "70aa0d5dc874ca347a57b0d234e7406e9d0c4beea090a62d7d266b84e8d98d72",
+      "sha256": "368678297d7763ea5d5d453afa9369e22484ecfc70de7f5769f4cbb05c372565",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-denial-redaction.summary.json",
-      "sha256": "3710cd215bd8fc7c219e63a4d59ab44eb9f36001bc0eec9b2a735b2df6a96c83",
+      "sha256": "b0379c2ea8d30e9c2866d3737d9fdc73711de24a955364bd78b75769d925764f",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-governance-wake-monitor.snapshot.json",
-      "sha256": "e41d35b1c32efbba462ab74ce9c8d465941c2bd940b71a06721af424ac9e0bfb",
+      "sha256": "4c5f747c497d1a4a1ba1af4e7efaf3951dafc8e095f8f9816fa868dac03803f6",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-governance-wake-monitor.summary.json",
-      "sha256": "2794368dc6825fb6164fbcadba1f72e612cd9d1e7294aa7e01bfcbddd8ae3697",
+      "sha256": "a20a038c04e3f023f7eb478b67144fca48dd288cf484e74d66810d92debc62e5",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-unknown-optional-envelope.snapshot.json",
-      "sha256": "40685065aea56fedf843d073f245a2a1fab30416cc501df04f0c762db8a48d74",
+      "sha256": "27fbc947268d2b2a5a60127cd6b575a820b235bc7bce5ec7ade6a6196d4652b6",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/semantic-tool-unknown-optional-envelope.summary.json",
-      "sha256": "0f9e444e2581285fac5dc7e6a0043e58de9d6b2fe0f5a52e7e71bddf5e1308a3",
+      "sha256": "51fb686791aa158f9a23a0c2b90ca24d43bcc953add9e3277ab3f01b958fc26a",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/source-gap.snapshot.json",
-      "sha256": "a796b8cc9fcc02edb7ad29d0566766837372b291c63810162df383541c936286",
+      "sha256": "7db7f25e423a721e60adfcdfee02db6d5e6fcd4a644ee180f5e29810ebbc0d78",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/source-gap.summary.json",
-      "sha256": "8129578e06caefe22551a1ea910227302f3041f540bc7e2e239052b711956e2c",
+      "sha256": "861d0ee3fafe13bf8bf0fb71b7c1ef9a62cb26efba4dc8db889f36d27a14a813",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/unknown-optional-fields.snapshot.json",
-      "sha256": "6776553f7036aaff54dc63ef21d57304fccc8fae2d7a5ae0af22c94eba12fc8c",
+      "sha256": "cf5b13a4b8d7ae73d1632e0539ec50d2ebcee8fbb6a2f33b28db7ff786fa90ff",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
     {
       "path": "fixtures/replay/golden/unknown-optional-fields.summary.json",
-      "sha256": "e3468d985f448d7b120c85265da6d58b553122fcd52399ab277d995fa867df46",
+      "sha256": "7d983bcad0439b7884e70d07f8070b53ed594fba2da3e8ac6998570e238e84dc",
       "expectation": "accept",
       "compatibilityCase": "deterministic-replay-oracle"
     },
