@@ -153,7 +153,14 @@ async function createApp(options?: { companyIds?: string[] }) {
     };
     next();
   });
-  app.use("/api", issueRoutes({} as any, createStorageService()));
+  const routeDb = {
+    select: () => ({
+      from: () => ({
+        where: () => ({ limit: async () => [] }),
+      }),
+    }),
+  };
+  app.use("/api", issueRoutes(routeDb as any, createStorageService()));
   app.use(errorHandler);
   return app;
 }

@@ -138,7 +138,14 @@ function createProjectApp() {
 
 function createIssueApp() {
   issueServer ??= buildApp((expressApp) => {
-    expressApp.use("/api", issueRoutes({} as any, {} as any));
+    const routeDb = {
+      select: () => ({
+        from: () => ({
+          where: () => ({ limit: async () => [] }),
+        }),
+      }),
+    };
+    expressApp.use("/api", issueRoutes(routeDb as any, {} as any));
   }).listen(0);
   return issueServer;
 }

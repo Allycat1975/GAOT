@@ -51,6 +51,15 @@ const mockRunnerGoalService = vi.hoisted(() => ({
   act: vi.fn(),
 }));
 
+function routeQueryResult<T>(rows: T[]) {
+  return {
+    limit: async () => [],
+    orderBy: async () => rows,
+    then: (resolve: (value: T[]) => unknown, reject?: (reason: unknown) => unknown) =>
+      Promise.resolve(rows).then(resolve, reject),
+  };
+}
+
 function registerModuleMocks() {
   vi.doMock("../services/access.js", () => ({
     accessService: () => mockAccessService,
@@ -497,15 +506,15 @@ describe("issue activity event routes", () => {
     const dbMock = {
       select: vi.fn(() => ({
         from: (table: unknown) => ({
-          where: async () => {
+        where: () => {
             const tableName = getTableName(table as Parameters<typeof getTableName>[0]);
             if (tableName === "project_workspaces") {
-              return [{ id: previousProjectWorkspaceId, name: "Main workspace" }];
+              return routeQueryResult([{ id: previousProjectWorkspaceId, name: "Main workspace" }]);
             }
             if (tableName === "execution_workspaces") {
-              return [{ id: nextExecutionWorkspaceId, name: "Feature workspace" }];
+              return routeQueryResult([{ id: nextExecutionWorkspaceId, name: "Feature workspace" }]);
             }
-            return [];
+            return routeQueryResult([]);
           },
         }),
       })),
@@ -570,9 +579,7 @@ describe("issue activity event routes", () => {
       transaction: async (callback: (tx: unknown) => Promise<unknown>) => callback({}),
       select: () => ({
         from: () => ({
-          where: () => ({
-            orderBy: async () => [handoffActivityRow],
-          }),
+          where: () => routeQueryResult([handoffActivityRow]),
         }),
       }),
     };
@@ -611,9 +618,7 @@ describe("issue activity event routes", () => {
     const dbMock = {
       select: () => ({
         from: () => ({
-          where: () => ({
-            orderBy: async () => [],
-          }),
+          where: () => routeQueryResult([]),
         }),
       }),
     };

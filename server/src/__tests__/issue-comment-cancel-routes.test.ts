@@ -220,6 +220,7 @@ describe.sequential("issue comment cancel routes", () => {
       select: vi.fn(() => ({
         from: vi.fn(() => ({
           where: vi.fn(() => ({
+            limit: vi.fn(async () => []),
             orderBy: vi.fn(async () => mockAuthoritativeQueueWakes),
           })),
         })),
