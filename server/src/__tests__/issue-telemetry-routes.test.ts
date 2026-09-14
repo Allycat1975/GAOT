@@ -190,6 +190,7 @@ describe("issue telemetry routes", () => {
     mockDbSelect.mockImplementation(() => ({ from: mockDbSelectFrom }));
     mockDbSelectFrom.mockImplementation(() => ({ where: mockDbSelectWhere }));
     mockDbSelectWhere.mockImplementation(() => ({
+      limit: vi.fn(async () => []),
       for: () => ({
         then: (onFulfilled: (rows: unknown[]) => unknown, onRejected?: (reason: unknown) => unknown) =>
           Promise.resolve([{

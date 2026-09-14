@@ -49,6 +49,7 @@ const mockDbSelectOrderBy = vi.hoisted(() => vi.fn(async () => []));
 const mockDbSelectWhere = vi.hoisted(() =>
   vi.fn(() => ({
     orderBy: mockDbSelectOrderBy,
+    limit: vi.fn(async () => []),
     then: (
       onFulfilled: (rows: unknown[]) => unknown,
       onRejected?: (reason: unknown) => unknown,
@@ -363,6 +364,7 @@ describe.sequential("issue comment reopen routes", () => {
     mockDbSelectOrderBy.mockResolvedValue([]);
     mockDbSelectWhere.mockImplementation(() => ({
       orderBy: mockDbSelectOrderBy,
+      limit: vi.fn(async () => []),
       then: (
         onFulfilled: (rows: unknown[]) => unknown,
         onRejected?: (reason: unknown) => unknown,
@@ -1464,6 +1466,7 @@ describe.sequential("issue comment reopen routes", () => {
   it("derives compact presentation for comments from source-scoped recovery runs", async () => {
     mockIssueService.getById.mockResolvedValue(makeIssue("in_progress"));
     mockDbSelectWhere.mockImplementation(() => ({
+      limit: vi.fn(async () => []),
       then: (
         onFulfilled: (rows: unknown[]) => unknown,
         onRejected?: (reason: unknown) => unknown,
@@ -1537,6 +1540,7 @@ describe.sequential("issue comment reopen routes", () => {
   it("keeps successful-run missing-state recovery comments fully visible", async () => {
     mockIssueService.getById.mockResolvedValue(makeIssue("in_progress"));
     mockDbSelectWhere.mockImplementation(() => ({
+      limit: vi.fn(async () => []),
       then: (
         onFulfilled: (rows: unknown[]) => unknown,
         onRejected?: (reason: unknown) => unknown,
