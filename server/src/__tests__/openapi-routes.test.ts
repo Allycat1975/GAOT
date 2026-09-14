@@ -83,7 +83,13 @@ const HTTP_METHODS = new Set([
   "patch",
   "trace",
 ]);
-const explicitOpenApiCoverageExclusions = new Set<string>();
+const explicitOpenApiCoverageExclusions = new Set<string>([
+  // These are authenticated internal Mycelium↔GAOT transport routes, not
+  // board-facing API operations and therefore intentionally stay out of the
+  // public OpenAPI contract.
+  "mycelium-projection-ingest.ts",
+  "mycelium-projections.ts",
+]);
 
 const explicitOpenApiOperationCoverageExclusions = new Set([
   // This endpoint is authenticated by the provider signature rather than by a
