@@ -54,6 +54,7 @@ const mockRoutineService = vi.hoisted(() => ({
 }));
 
 const mockDbSelectWhere = vi.hoisted(() => vi.fn(() => ({
+  limit: vi.fn(async () => []),
   then: (onFulfilled: (rows: unknown[]) => unknown, onRejected?: (reason: unknown) => unknown) =>
     Promise.resolve([{ companyId: "company-1", agentId: "agent-1", contextSnapshot: null }]).then(
       onFulfilled,
@@ -255,6 +256,7 @@ describe("issue workspace command authorization", () => {
     mockDbSelect.mockImplementation(() => ({ from: mockDbSelectFrom }));
     mockDbSelectFrom.mockImplementation(() => ({ where: mockDbSelectWhere }));
     mockDbSelectWhere.mockImplementation(() => ({
+      limit: vi.fn(async () => []),
       then: (onFulfilled: (rows: unknown[]) => unknown, onRejected?: (reason: unknown) => unknown) =>
         Promise.resolve([{ companyId: "company-1", agentId: "agent-1", contextSnapshot: null }]).then(
           onFulfilled,
