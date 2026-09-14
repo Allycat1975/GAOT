@@ -93,7 +93,134 @@ jobs:
           diag=$(tail -n 30 workspace-typecheck.log | tr '\n' ' ' | cut -c1-900)
           echo "::error title=Workspace typecheck::$diag"
           exit 1
-      - name: Verify full workspace tests
-        run: pnpm test
       - name: Verify full workspace build
         run: pnpm build
+
+  general_tests:
+    name: General tests (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: general-server
+            label: server-1/5
+            shard_index: 0
+            shard_count: 5
+          - group: general-server
+            label: server-2/5
+            shard_index: 1
+            shard_count: 5
+          - group: general-server
+            label: server-3/5
+            shard_index: 2
+            shard_count: 5
+          - group: general-server
+            label: server-4/5
+            shard_index: 3
+            shard_count: 5
+          - group: general-server
+            label: server-5/5
+            shard_index: 4
+            shard_count: 5
+          - group: general-workspaces-a
+            label: workspaces-a-1/2
+            shard_index: 0
+            shard_count: 2
+          - group: general-workspaces-a
+            label: workspaces-a-2/2
+            shard_index: 1
+            shard_count: 2
+          - group: general-workspaces-b
+            label: workspaces-b
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 9.15.4
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.11.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Restore workspace links
+        run: pnpm run preflight:workspace-links
+      - name: Run grouped general test suites
+        env:
+          TEST_GROUP: ${{ matrix.group }}
+          SHARD_INDEX: ${{ matrix.shard_index }}
+          SHARD_COUNT: ${{ matrix.shard_count }}
+        run: |
+          if [ -n "$SHARD_COUNT" ]; then
+            pnpm test:run:general -- --group "$TEST_GROUP" --shard-index "$SHARD_INDEX" --shard-count "$SHARD_COUNT"
+          else
+            pnpm test:run:general -- --group "$TEST_GROUP"
+          fi
+
+  serialized_tests:
+    name: Serialized server tests (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard_index: 0
+            shard_count: 5
+            label: 1/5
+          - shard_index: 1
+            shard_count: 5
+            label: 2/5
+          - shard_index: 2
+            shard_count: 5
+            label: 3/5
+          - shard_index: 3
+            shard_count: 5
+            label: 4/5
+          - shard_index: 4
+            shard_count: 5
+            label: 5/5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 9.15.4
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.11.0
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Restore workspace links
+        run: pnpm run preflight:workspace-links
+      - name: Run serialized server test shard
+        run: pnpm test:run:serialized -- --shard-index ${{ matrix.shard_index }} --shard-count ${{ matrix.shard_count }}
+
+  test_summary:
+    name: Full workspace tests summary
+    if: ${{ always() }}
+    needs: [verify, general_tests, serialized_tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require verification and every test shard
+        env:
+          VERIFY_RESULT: ${{ needs.verify.result }}
+          GENERAL_RESULT: ${{ needs.general_tests.result }}
+          SERIALIZED_RESULT: ${{ needs.serialized_tests.result }}
+        run: |
+          test "$VERIFY_RESULT" = success
+          test "$GENERAL_RESULT" = success
+          test "$SERIALIZED_RESULT" = success
