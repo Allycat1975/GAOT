@@ -227,7 +227,14 @@ describe.sequential("closed isolated workspace issue routes", () => {
       };
       next();
     });
-    app.use("/api", issueRoutes({} as any, {} as any));
+    const routeDb = {
+      select: () => ({
+        from: () => ({
+          where: () => ({ limit: async () => [] }),
+        }),
+      }),
+    };
+    app.use("/api", issueRoutes(routeDb as any, {} as any));
     app.use(errorHandler);
     return app;
   }
