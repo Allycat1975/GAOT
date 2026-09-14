@@ -171,7 +171,14 @@ async function createApp(storage: StorageService, options?: { companyIds?: strin
     };
     next();
   });
-  app.use("/api", issueRoutes({} as any, storage));
+  const routeDb = {
+    select: () => ({
+      from: () => ({
+        where: () => ({ limit: async () => [] }),
+      }),
+    }),
+  };
+  app.use("/api", issueRoutes(routeDb as any, storage));
   app.use(errorHandler);
   return app;
 }
