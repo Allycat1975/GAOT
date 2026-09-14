@@ -6,13 +6,13 @@ owner approval.
 
 | Gate | Current evidence | Status |
 |---|---|---|
-| A1/A2 | Read-only projection facade and canonical command/history are separate; GAOT now serves binding-scoped last-known targets when Mycelium is unavailable | A1 local failover test passes; live A1/A2 rehearsal pending |
+| A1/A2 | Read-only projection facade and canonical command/history are separate; GAOT now serves binding-scoped last-known targets for HTTP and connection failures when Mycelium is unavailable | A1 local failover tests pass; live A1/A2 rehearsal pending |
 | A3 | Central donor guard plus issue route/service guards; `issue`, `work_unit`, and `work-unit` aliases covered | Local pass; live bound-target rehearsal pending |
 | A4 | Mycelium worker control gates claim, checkout, heartbeat and scheduling | Local code evidence; live rehearsal pending |
 | A5/A6 | Mycelium service requires independent Critic PASS and exact Guardian run evidence | 18 control-plane tests pass; live rehearsal pending |
 | A7 | Projection writer rejects stale, replayed, conflicting and re-pointed bindings; concrete adapters cover company, worker, goal, WorkUnit, run, activity, evidence, and cost | Focused projection/adapter/guard tests pass (8); distributed concurrency not rehearsed |
 | A8 | HMAC envelope, expiry, nonce replay protection and exact Guardian evidence | 15 Tool Gateway tests pass; live credential-order rehearsal pending |
-| A9 | Supabase JWT maps to active HUMAN actor and Postgres RoleVersion context | Live ES256 authentication, tenant-context resolution, and governed intent command pass (`commandId=06d24f02-5569-4f56-aedf-35b1ddbd18fd`); Supabase records one intent, domain event, and audit event |
+| A9 | Supabase JWT maps to active HUMAN actor and Postgres RoleVersion context | Live positive command returned `201` (`commandId=e566bb7b-adc9-4ec9-b885-8f72a251245e`); five negative authority cases returned `403`; Supabase records two intents, domain events, and audit events |
 | A10 | 21 migration/RLS/raw-SQL checks, API/control/tool tests pass | Official Paperclip corpus substitution is owner-approved and inventory checks pass; production API composition is authored; Docker/embedded-Postgres execution remains unavailable on this Windows host |
 
 ## Verified commands
