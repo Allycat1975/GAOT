@@ -17,6 +17,8 @@ jobs:
     name: Full workspace verification
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      DATABASE_URL: ""
     services:
       postgres:
         image: postgres:16
@@ -100,6 +102,8 @@ jobs:
     name: General tests (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      DATABASE_URL: ""
     strategy:
       fail-fast: false
       matrix:
@@ -168,6 +172,8 @@ jobs:
     name: Serialized server tests (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      DATABASE_URL: ""
     strategy:
       fail-fast: false
       matrix:
