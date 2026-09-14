@@ -67,7 +67,15 @@ export class HttpMyceliumReadClient {
   }
 
   private async getObject<T>(path: string, guard: (value: unknown) => value is T): Promise<T> {
-    const response = await this.fetchImplementation(new URL(path, this.baseUrl), { headers: { authorization: `Bearer ${this.options.bearerToken}`, accept: "application/json" } });
+    let response: Response;
+    try {
+      response = await this.fetchImplementation(new URL(path, this.baseUrl), { headers: { authorization: `Bearer ${this.options.bearerToken}`, accept: "application/json" } });
+    } catch {
+      // A stopped/unreachable canonical service has no HTTP response. Normalize
+      // connection failures so projection routes can serve their binding-scoped
+      // last-known value and health can report `offline` consistently.
+      throw new MyceliumApiError(503, "canonical_state_unavailable");
+    }
     const body: unknown = await response.json().catch(() => ({}));
     if (!response.ok) {
       const code = isRecord(body) && typeof body.error === "string" ? body.error : "unknown_error";

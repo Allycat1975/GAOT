@@ -39,6 +39,18 @@ describe("Mycelium projection routes", () => {
     expect(cached.body).toMatchObject({ canonicalId: "myci", name: "Cached MYCI" });
   });
 
+  it("serves the last-known projection when the canonical connection is refused", async () => {
+    const app = express();
+    app.use((req, _res, next) => { req.actor = { type: "board", source: "local_implicit", isInstanceAdmin: true, companyIds: [], userId: "operator" } as any; next(); });
+    const fetchImplementation = vi.fn<typeof fetch>().mockRejectedValue(new TypeError("connect ECONNREFUSED"));
+    const client = new HttpMyceliumReadClient({ baseUrl: "http://127.0.0.1:3200", bearerToken: token, fetchImplementation });
+    app.use(myceliumProjectionRoutes(client, { canonicalCompanyId: async () => "myci" }, { getCompany: async () => ({ canonicalId: "myci", canonicalVersion: 8, sourceHash: "cached-network", observedAt: "2026-01-01T00:00:00.000Z", name: "Cached network", status: "ACTIVE" }) }));
+    app.use((error: { status?: number; message?: string }, _req: express.Request, res: express.Response, _next: express.NextFunction) => res.status(error.status ?? 500).json({ error: error.message }));
+    const response = await request(app).get("/mycelium/companies/gaot-company-id");
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ canonicalId: "myci", name: "Cached network" });
+  });
+
   it("does not expose a canonical endpoint when the selected GAOT company is not bound", async () => {
     const app = appWith(new Response(JSON.stringify({ status: "live", observedAt: "2026-01-01T00:00:00.000Z" }), { status: 200 }), null);
     const response = await request(app).get("/mycelium/companies/gaot-company-id/workers");

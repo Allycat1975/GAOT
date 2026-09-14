@@ -20,4 +20,10 @@ describe("HttpMyceliumReadClient", () => {
     const client = new HttpMyceliumReadClient({ baseUrl: "http://localhost:3200", bearerToken: token, fetchImplementation });
     await expect(client.inspect()).rejects.toEqual(new MyceliumApiError(502, "invalid_canonical_projection"));
   });
+
+  it("normalizes a stopped canonical service to an unavailable error", async () => {
+    const fetchImplementation = vi.fn<typeof fetch>().mockRejectedValue(new TypeError("fetch failed"));
+    const client = new HttpMyceliumReadClient({ baseUrl: "http://127.0.0.1:3200", bearerToken: token, fetchImplementation });
+    await expect(client.inspect()).rejects.toEqual(new MyceliumApiError(503, "canonical_state_unavailable"));
+  });
 });
