@@ -82,6 +82,7 @@ const mockReviewTransition = vi.hoisted(() => ({
   value: null as null | { actorType: string; actorId: string; details: Record<string, unknown> },
 }));
 const mockDbSelectWhere = vi.hoisted(() => vi.fn(() => ({
+  limit: vi.fn(async () => []),
   then: (onFulfilled: (rows: unknown[]) => unknown, onRejected?: (reason: unknown) => unknown) =>
     Promise.resolve([{ companyId: "company-1", agentId: CREATED_AGENT_ID, contextSnapshot: null }]).then(
       onFulfilled,
@@ -562,6 +563,7 @@ describe.sequential("issue thread interaction routes", () => {
     mockDbSelect.mockImplementation(() => ({ from: mockDbSelectFrom }));
     mockDbSelectFrom.mockImplementation(() => ({ where: mockDbSelectWhere }));
     mockDbSelectWhere.mockImplementation(() => ({
+      limit: vi.fn(async () => []),
       then: (onFulfilled: (rows: unknown[]) => unknown, onRejected?: (reason: unknown) => unknown) =>
         Promise.resolve(mockRunAttribution.value ? [mockRunAttribution.value] : []).then(
           onFulfilled,
