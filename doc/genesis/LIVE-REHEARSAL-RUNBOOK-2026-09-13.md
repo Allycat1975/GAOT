@@ -8,15 +8,20 @@ fixture records; IDs must be discovered from the live binding tables.
 
 ```sh
 export DATABASE_URL='postgresql://<gaot-runtime>@<gaot-host>/<database>'
-export MYCELIUM_API_URL='http://127.0.0.1:3200'
+# GAOT's server/src/index.ts consumes this exact name.
+export MYCELIUM_API_BASE_URL='http://127.0.0.1:3200'
 export MYCELIUM_API_TOKEN='<runtime-token>'
-export SUPABASE_JWKS_URL='https://edlzrketqepqvnjhrbrm.supabase.co/auth/v1/.well-known/jwks.json'
-export OLLAMA_BASE_URL='http://ollama:11434'
-export OLLAMA_MODEL='deepseek-v4-flash'
 ```
 
-Start the canonical API using `infra/production/docker-compose.yml` and verify
-authenticated `GET /v1/health` returns `200` and `status=live`.
+Start the canonical API using the MYCI release workspace's
+`infra/production/docker-compose.yml`, with its `.env.production` containing
+`DATABASE_URL`, `MYCELIUM_API_TOKEN`, `MYCELIUM_API_PORT`,
+`SUPABASE_JWKS_URL`, and the approved `OLLAMA_BASE_URL`/`OLLAMA_MODEL`.
+The Compose service listens on port `3200`; point GAOT's
+`MYCELIUM_API_BASE_URL` at that service and verify authenticated
+`GET /v1/health` returns `200` and `status=live`. Do not put the GAOT
+PostgreSQL URL in the Mycelium `.env.production`: GAOT's `DATABASE_URL` must
+point to a separately migrated GAOT-compatible database.
 
 ## Acceptance sequence
 
