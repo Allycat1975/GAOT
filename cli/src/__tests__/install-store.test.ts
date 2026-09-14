@@ -221,7 +221,9 @@ describe("managed install store", () => {
     fs.symlinkSync(outsideBin, localDir, "dir");
     expect(() => writeManagedShim(paths)).toThrow("unsafe shim directory");
 
-    fs.rmSync(localDir);
+    // `localDir` is a directory symlink; unlink the link itself so the
+    // outside target remains intact on Windows as well as POSIX.
+    fs.unlinkSync(localDir);
     fs.mkdirSync(path.dirname(paths.shimPath), { recursive: true });
     fs.writeFileSync(paths.shimPath, `# ${MANAGED_SHIM_MARKER}\n`);
     fs.linkSync(paths.shimPath, path.join(root, "linked-shim"));

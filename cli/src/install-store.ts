@@ -286,7 +286,15 @@ export function flipCurrentAtomic(
     hooks.beforeRename?.();
     fs.renameSync(temporaryLink, paths.currentPath);
   } finally {
-    fs.rmSync(temporaryLink, { force: true });
+    // `temporaryLink` is a directory symlink. On Windows, `rmSync` may
+    // follow that link and report `ERR_FS_EISDIR` instead of cleaning up the
+    // link, which can mask an interrupted activation error. Unlink the link
+    // itself; the payload it targets must remain untouched.
+    try {
+      fs.unlinkSync(temporaryLink);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
   }
 }
 
