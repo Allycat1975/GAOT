@@ -223,6 +223,11 @@ async function createApp() {
   });
   app.use("/api", issueRoutes({
     transaction: async (callback: (tx: Record<string, never>) => Promise<unknown>) => callback({}),
+    select: () => ({
+      from: () => ({
+        where: () => ({ limit: async () => [] }),
+      }),
+    }),
   } as any, {} as any));
   app.use(errorHandler);
   return app;

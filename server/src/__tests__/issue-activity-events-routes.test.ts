@@ -53,7 +53,7 @@ const mockRunnerGoalService = vi.hoisted(() => ({
 
 function routeQueryResult<T>(rows: T[]) {
   return {
-    limit: async () => [],
+    limit: async () => rows,
     orderBy: async () => rows,
     then: (resolve: (value: T[]) => unknown, reject?: (reason: unknown) => unknown) =>
       Promise.resolve(rows).then(resolve, reject),
