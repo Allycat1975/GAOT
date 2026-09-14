@@ -19,6 +19,10 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
+      # Package installation needs the host resolver on WSL/Docker Desktop;
+      # without this, BuildKit's isolated resolver can intermittently fail on
+      # deb.debian.org even when the host has working DNS.
+      network: host
     # No `init: true` here on purpose. The image makes tini PID 1 itself
     # (Dockerfile ENTRYPOINT), which covers every launch path -- compose, plain
     # `docker run`, the quadlet units and the ECS task definition -- instead of
