@@ -2,10 +2,23 @@
 FROM node:24-trixie-slim AS base
 ARG USER_UID=1000
 ARG USER_GID=1000
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates gosu curl gh git wget ripgrep python3 tini \
-  && rm -rf /var/lib/apt/lists/* \
-  && corepack enable
+RUN set -eux; \
+  printf '%s\n' \
+    'Acquire::Retries "5";' \
+    'Acquire::http::Timeout "30";' \
+    'Acquire::https::Timeout "30";' \
+    > /etc/apt/apt.conf.d/80-genesis-retry; \
+  installed=0; \
+  for attempt in 1 2 3; do \
+    if apt-get update && apt-get install -y --no-install-recommends ca-certificates gosu curl gh git wget ripgrep python3 tini; then \
+      installed=1; break; \
+    fi; \
+    apt-get clean; rm -rf /var/lib/apt/lists/*; \
+    sleep $((attempt * 5)); \
+  done; \
+  test "$installed" = 1; \
+  rm -rf /var/lib/apt/lists/*; \
+  corepack enable
 
 # Modify the existing node user/group to have the specified UID/GID to match host user
 RUN usermod -u $USER_UID --non-unique node \
@@ -62,9 +75,17 @@ WORKDIR /app
 # The C toolchain is explicit: apt's cargo used to pull gcc in as a
 # dependency, and rustup does not — without it every build script dies on
 # "linker `cc` not found".
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends gcc libc6-dev pkg-config \
-  && rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+  installed=0; \
+  for attempt in 1 2 3; do \
+    if apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev pkg-config; then \
+      installed=1; break; \
+    fi; \
+    apt-get clean; rm -rf /var/lib/apt/lists/*; \
+    sleep $((attempt * 5)); \
+  done; \
+  test "$installed" = 1; \
+  rm -rf /var/lib/apt/lists/*
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH
