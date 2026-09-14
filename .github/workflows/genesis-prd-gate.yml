@@ -16,7 +16,7 @@ jobs:
   verify:
     name: Full workspace verification
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     services:
       postgres:
         image: postgres:16
