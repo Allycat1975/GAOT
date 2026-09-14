@@ -29,6 +29,12 @@ const expectedRejectedFixtures = new Set([
   "fixtures/replay/semantic-tool-unsupported-required-version.json",
 ]);
 
+// Git checkouts may use CRLF on Windows and LF on Linux. Hash the canonical
+// text form so the checked-in manifest is reproducible across runner hosts.
+function canonicalSource(source) {
+  return source.replace(/\r\n?/g, "\n");
+}
+
 export async function buildProtocolManifest() {
   const schemas = await loadSchemaCatalog(schemaDirectory);
   const validators = compileProtocolValidators(schemas);
@@ -89,7 +95,7 @@ export async function buildProtocolManifest() {
 
     fixtures.push({
       path: relativePath,
-      sha256: sha256(source),
+      sha256: sha256(canonicalSource(source)),
       expectation,
       compatibilityCase,
     });
@@ -108,7 +114,7 @@ export async function buildProtocolManifest() {
     schemas: schemas.map((record) => ({
       path: portableRelative(protocolRoot, record.path),
       id: record.value.$id,
-      sha256: sha256(record.source),
+      sha256: sha256(canonicalSource(record.source)),
     })),
     fixtures,
   };
